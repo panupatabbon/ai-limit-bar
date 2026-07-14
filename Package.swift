@@ -9,6 +9,7 @@ let package = Package(
         .target(
             name: "AILimitBarKit",
             path: "Sources/AILimitBarKit",
+            resources: [.copy("Resources/Fonts")],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .executableTarget(

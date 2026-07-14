@@ -5,11 +5,14 @@ public struct QuotaPopoverView: View {
     let store: QuotaStore
     let settings: AppSettings
     let onOpenSettings: () -> Void
+    let onQuit: () -> Void
 
-    public init(store: QuotaStore, settings: AppSettings, onOpenSettings: @escaping () -> Void) {
+    public init(store: QuotaStore, settings: AppSettings,
+                onOpenSettings: @escaping () -> Void, onQuit: @escaping () -> Void) {
         self.store = store
         self.settings = settings
         self.onOpenSettings = onOpenSettings
+        self.onQuit = onQuit
     }
 
     public static func visibleLimits(_ snapshot: QuotaSnapshot?, settings: AppSettings) -> [QuotaLimit] {
@@ -116,11 +119,20 @@ public struct QuotaPopoverView: View {
 
     @ViewBuilder
     private func footer(_ palette: RetroPalette) -> some View {
-        Button(action: onOpenSettings) {
-            Text("⚙ SETTINGS")
-                .font(PixelFont.swiftUI(size: 7))
-                .foregroundStyle(palette.textPrimary.opacity(0.7))
+        HStack {
+            Button(action: onOpenSettings) {
+                Text("⚙ SETTINGS")
+                    .font(PixelFont.swiftUI(size: 7))
+                    .foregroundStyle(palette.textPrimary.opacity(0.7))
+            }
+            .buttonStyle(.plain)
+            Spacer()
+            Button(action: onQuit) {
+                Text("QUIT")
+                    .font(PixelFont.swiftUI(size: 7))
+                    .foregroundStyle(palette.textPrimary.opacity(0.7))
+            }
+            .buttonStyle(.plain)
         }
-        .buttonStyle(.plain)
     }
 }

@@ -73,7 +73,10 @@ public final class QuotaStore {
     public func startPolling(interval: TimeInterval = 60) {
         stopPolling()
         pollTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
-            Task { @MainActor in await self?.refresh() }
+            Task { @MainActor in
+                guard let self, Self.shouldPollTickRefresh(state: self.state) else { return }
+                await self.refresh()
+            }
         }
         Task { await refresh() }
     }
@@ -107,5 +110,13 @@ public final class QuotaStore {
 
     public static func retryDelay(failureCount: Int) -> TimeInterval {
         min(5 * pow(2, Double(max(failureCount, 1) - 1)), 300)
+    }
+
+    /// While offline, the retryTimer alone owns backoff retries — the 60s
+    /// pollTimer must not also fire, or the request rate rises when the
+    /// network is down instead of backing off.
+    public static func shouldPollTickRefresh(state: State) -> Bool {
+        if case .offline = state { return false }
+        return true
     }
 }

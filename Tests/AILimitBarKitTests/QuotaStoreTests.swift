@@ -91,4 +91,13 @@ final class QuotaStoreTests: XCTestCase {
         XCTAssertEqual(QuotaStore.retryDelay(failureCount: 4), 40)
         XCTAssertEqual(QuotaStore.retryDelay(failureCount: 10), 300) // capped
     }
+
+    func testShouldPollTickRefresh() {
+        let snap = snapshot()
+        XCTAssertFalse(QuotaStore.shouldPollTickRefresh(state: .offline(last: snap)))
+        XCTAssertTrue(QuotaStore.shouldPollTickRefresh(state: .loading))
+        XCTAssertTrue(QuotaStore.shouldPollTickRefresh(state: .ready(snap)))
+        XCTAssertTrue(QuotaStore.shouldPollTickRefresh(state: .credentialsMissing))
+        XCTAssertTrue(QuotaStore.shouldPollTickRefresh(state: .tokenExpired))
+    }
 }

@@ -11,4 +11,8 @@ final class SeverityTests: XCTestCase {
         XCTAssertEqual(Severity(percent: 100), .critical)
         XCTAssertEqual(Severity(percent: 120), .critical) // extra usage overshoot
     }
+
+    func testAuthSourceCases() {
+        XCTAssertEqual(AuthSource.allCases, [.claudeCodeCredentials])
+    }
 }

@@ -22,9 +22,14 @@ Or build from source: `./Scripts/bundle.sh` (needs Xcode 15+ command line tools)
 ## Security
 
 - **Read-only.** The app reads Claude Code's OAuth access token from the
-  macOS Keychain (item "Claude Code-credentials"; you'll see a one-time
-  "Allow" dialog) with a fallback to `~/.claude/.credentials.json`.
-  It never writes to either store and never refreshes tokens.
+  macOS Keychain (item "Claude Code-credentials") with a fallback to
+  `~/.claude/.credentials.json`. It never writes to either store and never
+  refreshes tokens.
+- On first launch macOS shows a Keychain access dialog — click **Always
+  Allow** so you aren't prompted again. Because release builds are
+  ad-hoc signed (not notarized), rebuilding from source or updating to a
+  new build changes the app's signature and will trigger the Keychain
+  prompt again.
 - The token stays in memory, is never logged, and is sent to exactly one
   place: `https://api.anthropic.com/api/oauth/usage` over HTTPS.
 - No telemetry, no analytics, no auto-update pings.

@@ -56,3 +56,8 @@ public enum QuotaError: Error, Equatable {
     case network(String)
     case badResponse(String)
 }
+
+/// Reserved for a future "Sign in with Claude" mode (spec §4.1).
+public enum AuthSource: String, CaseIterable, Sendable {
+    case claudeCodeCredentials
+}

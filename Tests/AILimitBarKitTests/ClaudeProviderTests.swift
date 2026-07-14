@@ -7,6 +7,16 @@ final class ClaudeProviderTests: XCTestCase {
         func load() -> ClaudeCredentials? { creds }
     }
 
+    final class CountingSource: CredentialsSource, @unchecked Sendable {
+        private(set) var loadCount = 0
+        let creds: ClaudeCredentials?
+        init(creds: ClaudeCredentials?) { self.creds = creds }
+        func load() -> ClaudeCredentials? {
+            loadCount += 1
+            return creds
+        }
+    }
+
     private func provider(creds: ClaudeCredentials?,
                           respond: @escaping (URLRequest) throws -> (HTTPURLResponse, Data),
                           now: Date = Date(timeIntervalSince1970: 1_784_055_124)) -> ClaudeProvider {
@@ -50,6 +60,51 @@ final class ClaudeProviderTests: XCTestCase {
         do { _ = try await p.fetchSnapshot(); XCTFail("expected throw") }
         catch let e as QuotaError { XCTAssertEqual(e, .tokenExpired) }
         catch { XCTFail("wrong error \(error)") }
+    }
+
+    func testCredentialsCachedAcrossConsecutivePolls() async throws {
+        let source = CountingSource(creds: validCreds)
+        MockURLProtocol.handler = { request in
+            (HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+             Data(UsageResponseTests.fullFixture.utf8))
+        }
+        let config = URLSessionConfiguration.ephemeral
+        config.protocolClasses = [MockURLProtocol.self]
+        let p = ClaudeProvider(
+            resolver: CredentialsResolver(sources: [source]),
+            client: ClaudeUsageClient(session: URLSession(configuration: config)),
+            now: { Date(timeIntervalSince1970: 1_784_055_124) })
+
+        _ = try await p.fetchSnapshot()
+        _ = try await p.fetchSnapshot()
+        XCTAssertEqual(source.loadCount, 1)
+    }
+
+    func testCredentialsReResolvedAfterServerTokenExpired() async throws {
+        let source = CountingSource(creds: validCreds)
+        var requestCount = 0
+        MockURLProtocol.handler = { request in
+            requestCount += 1
+            if requestCount == 1 {
+                return (HTTPURLResponse(url: request.url!, statusCode: 401, httpVersion: nil, headerFields: nil)!,
+                        Data())
+            }
+            return (HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+                    Data(UsageResponseTests.fullFixture.utf8))
+        }
+        let config = URLSessionConfiguration.ephemeral
+        config.protocolClasses = [MockURLProtocol.self]
+        let p = ClaudeProvider(
+            resolver: CredentialsResolver(sources: [source]),
+            client: ClaudeUsageClient(session: URLSession(configuration: config)),
+            now: { Date(timeIntervalSince1970: 1_784_055_124) })
+
+        do { _ = try await p.fetchSnapshot(); XCTFail("expected throw") }
+        catch let e as QuotaError { XCTAssertEqual(e, .tokenExpired) }
+        XCTAssertEqual(source.loadCount, 1)
+
+        _ = try await p.fetchSnapshot()
+        XCTAssertEqual(source.loadCount, 2)
     }
 
     func testPlanNames() {

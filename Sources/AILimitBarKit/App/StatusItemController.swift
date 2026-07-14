@@ -19,16 +19,19 @@ public final class StatusItemController {
     public func start() {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         item.button?.target = self
-        item.button?.action = #selector(togglePopover)
+        item.button?.action = #selector(handleClick)
+        item.button?.sendAction(on: [.leftMouseUp, .rightMouseUp])
         statusItem = item
 
         let popover = NSPopover()
         popover.behavior = .transient
         popover.contentViewController = NSHostingController(
-            rootView: QuotaPopoverView(store: store, settings: settings) { [weak self] in
+            rootView: QuotaPopoverView(store: store, settings: settings, onOpenSettings: { [weak self] in
                 self?.popover?.performClose(nil)
                 self?.settingsWindow.show()
-            })
+            }, onQuit: {
+                NSApp.terminate(nil)
+            }))
         self.popover = popover
 
         tickTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
@@ -94,8 +97,13 @@ public final class StatusItemController {
         }
     }
 
-    @objc private func togglePopover() {
-        guard let button = statusItem?.button, let popover else { return }
+    @objc private func handleClick() {
+        guard let button = statusItem?.button else { return }
+        if NSApp.currentEvent?.type == .rightMouseUp {
+            showRightClickMenu(for: button)
+            return
+        }
+        guard let popover else { return }
         if popover.isShown {
             popover.performClose(nil)
         } else {
@@ -103,5 +111,12 @@ public final class StatusItemController {
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             popover.contentViewController?.view.window?.makeKey()
         }
+    }
+
+    private func showRightClickMenu(for button: NSStatusBarButton) {
+        let menu = NSMenu()
+        menu.addItem(NSMenuItem(title: "Quit AI Limit Bar",
+                                 action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        menu.popUp(positioning: nil, at: NSPoint(x: 0, y: button.bounds.height), in: button)
     }
 }

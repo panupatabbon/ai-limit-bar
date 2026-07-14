@@ -1,0 +1,42 @@
+# ai-limit-bar
+
+A retro 8-bit menu bar app for macOS that shows your Claude Pro/Max
+subscription quota — session (5-hour), weekly, and per-model limits with
+used %, HP-style pixel bars, and reset times.
+
+![screenshot placeholder — add after first release]
+
+## Requirements
+
+- macOS 14+
+- [Claude Code](https://claude.com/claude-code) installed and signed in
+  (this app reads the quota through Claude Code's credentials)
+
+## Install
+
+Download `AILimitBar.app` from Releases. The app is not notarized yet:
+right-click → Open on first launch (or `xattr -d com.apple.quarantine AILimitBar.app`).
+
+Or build from source: `./Scripts/bundle.sh` (needs Xcode 15+ command line tools).
+
+## Security
+
+- **Read-only.** The app reads Claude Code's OAuth access token from the
+  macOS Keychain (item "Claude Code-credentials"; you'll see a one-time
+  "Allow" dialog) with a fallback to `~/.claude/.credentials.json`.
+  It never writes to either store and never refreshes tokens.
+- The token stays in memory, is never logged, and is sent to exactly one
+  place: `https://api.anthropic.com/api/oauth/usage` over HTTPS.
+- No telemetry, no analytics, no auto-update pings.
+- Note: the usage endpoint is the same one Claude Code's `/usage` command
+  uses; it is not officially documented and may change.
+
+## Settings
+
+Language EN/ไทย · theme Dark/Light/System · show/hide menu bar % · pick which
+limit the % tracks · choose visible limits · compact rows · three animated
+pixel avatars (BOO / BUG / BOT).
+
+## License
+
+MIT. Press Start 2P font © CodeMan38, SIL Open Font License 1.1.

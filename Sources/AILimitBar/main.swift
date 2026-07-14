@@ -1,2 +1,8 @@
+import AppKit
 import AILimitBarKit
-print("ai-limit-bar \(AILimitBarKit.version)")
+
+let app = NSApplication.shared
+let delegate = AppDelegate()
+app.delegate = delegate
+app.setActivationPolicy(.accessory)
+app.run()

@@ -13,24 +13,24 @@ public struct RetroPalette: Equatable, Sendable {
 
 public enum RetroTheme {
     public static let dark = RetroPalette(
-        background: Color(hex: 0x0A0A12),
-        surface: Color(hex: 0x16161F),
-        textPrimary: Color(hex: 0xE8E8F0),
-        accentPink: Color(hex: 0xFF2E88),
-        accentCyan: Color(hex: 0x00CCFF),
-        ok: Color(hex: 0x00FF66),
-        warn: Color(hex: 0xFFD500),
-        critical: Color(hex: 0xFF3344))
+        background: Color(hex: 0x14141B),
+        surface: Color(hex: 0x1E1E28),
+        textPrimary: Color(hex: 0xD8D8E4),
+        accentPink: Color(hex: 0xE85D9E),
+        accentCyan: Color(hex: 0x5BC8E8),
+        ok: Color(hex: 0x4ADE80),
+        warn: Color(hex: 0xE8C547),
+        critical: Color(hex: 0xF07171))
 
     public static let light = RetroPalette(
-        background: Color(hex: 0xF2EAD3),
-        surface: Color(hex: 0xE6DCC0),
-        textPrimary: Color(hex: 0x2B2B33),
-        accentPink: Color(hex: 0xB0246A),
-        accentCyan: Color(hex: 0x00708C),
-        ok: Color(hex: 0x1D7A3E),
-        warn: Color(hex: 0x9A6B00),
-        critical: Color(hex: 0xB3232E))
+        background: Color(hex: 0xF5EFDF),
+        surface: Color(hex: 0xEAE2CC),
+        textPrimary: Color(hex: 0x3A3A42),
+        accentPink: Color(hex: 0xA8487E),
+        accentCyan: Color(hex: 0x2E7D96),
+        ok: Color(hex: 0x3B8C5A),
+        warn: Color(hex: 0xB0821F),
+        critical: Color(hex: 0xC25454))
 
     public static func palette(_ pref: ThemePreference, systemIsDark: Bool) -> RetroPalette {
         switch pref {

@@ -26,4 +26,13 @@ final class RetroThemeTests: XCTestCase {
         // After registration the PostScript/display name must resolve.
         XCTAssertNotNil(NSFont(name: "Press Start 2P", size: 12) ?? NSFont(name: "PressStart2P-Regular", size: 12))
     }
+
+    func testSoftenedPaletteValues() {
+        XCTAssertEqual(RetroTheme.dark.background, Color(hex: 0x14141B))
+        XCTAssertEqual(RetroTheme.dark.ok, Color(hex: 0x4ADE80))
+        XCTAssertEqual(RetroTheme.dark.warn, Color(hex: 0xE8C547))
+        XCTAssertEqual(RetroTheme.dark.critical, Color(hex: 0xF07171))
+        XCTAssertEqual(RetroTheme.light.background, Color(hex: 0xF5EFDF))
+        XCTAssertEqual(RetroTheme.light.ok, Color(hex: 0x3B8C5A))
+    }
 }

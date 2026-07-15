@@ -34,4 +34,27 @@ final class StatusItemLogicTests: XCTestCase {
         XCTAssertEqual(StatusItemController.menuBarColor(
             headline: nil, state: .tokenExpired, palette: palette), .systemGray)
     }
+
+    func testMenuBarSpec() {
+        let frame = SpriteLibrary.sprite(forProvider: "claude").menuBarFrames[0]
+        let palette = RetroTheme.dark
+
+        let ready = StatusItemController.menuBarSpec(
+            headline: headline, state: .ready(snap), showPercent: true,
+            frame: frame, palette: palette)
+        XCTAssertEqual(ready.percentText, "58%")
+        XCTAssertEqual(ready.barFraction, 0.58)
+
+        let hidden = StatusItemController.menuBarSpec(
+            headline: headline, state: .ready(snap), showPercent: false,
+            frame: frame, palette: palette)
+        XCTAssertNil(hidden.percentText)
+        XCTAssertEqual(hidden.barFraction, 0.58) // bar still shown when % hidden
+
+        let expired = StatusItemController.menuBarSpec(
+            headline: nil, state: .tokenExpired, showPercent: true,
+            frame: frame, palette: palette)
+        XCTAssertEqual(expired.percentText, "--")
+        XCTAssertNil(expired.barFraction)
+    }
 }

@@ -59,21 +59,13 @@ public final class StatusItemController {
         guard let button = statusItem?.button else { return }
         let palette = RetroTheme.palette(settings.theme, systemIsDark: systemIsDark)
         let headline = store.headlineLimit(pin: settings.headlinePin)
-        let color = Self.menuBarColor(headline: headline, state: store.state, palette: palette)
-        let sprite = SpriteLibrary.sprite(forProvider: "claude")
-        let frames = sprite.menuBarFrames
-        button.image = frames[frameIndex % frames.count].nsImage(color: color, pixelSize: 1.1)
-        button.image?.isTemplate = false
-
-        let title = Self.menuBarTitle(headline: headline, state: store.state,
-                                      showPercent: settings.showPercentInMenuBar)
-        button.attributedTitle = NSAttributedString(
-            string: title.isEmpty ? "" : " " + title,
-            attributes: [
-                .font: PixelFont.nsFont(size: 9),
-                .foregroundColor: color,
-                .baselineOffset: 1,
-            ])
+        let frames = SpriteLibrary.sprite(forProvider: "claude").menuBarFrames
+        let spec = Self.menuBarSpec(
+            headline: headline, state: store.state,
+            showPercent: settings.showPercentInMenuBar,
+            frame: frames[frameIndex % frames.count], palette: palette)
+        button.image = MenuBarImageBuilder.image(for: spec)
+        button.attributedTitle = NSAttributedString(string: "")
     }
 
     public static func menuBarTitle(headline: QuotaLimit?, state: QuotaStore.State,
@@ -86,6 +78,25 @@ public final class StatusItemController {
             guard let headline else { return "--" }
             return "\(Int(headline.percentUsed))%"
         }
+    }
+
+    public static func menuBarSpec(headline: QuotaLimit?, state: QuotaStore.State,
+                                   showPercent: Bool, frame: SpriteFrame,
+                                   palette: RetroPalette) -> MenuBarImageBuilder.Spec {
+        let title = menuBarTitle(headline: headline, state: state, showPercent: showPercent)
+        let color = menuBarColor(headline: headline, state: state, palette: palette)
+        let bar: Double?
+        switch state {
+        case .ready, .offline:
+            bar = headline.map { min(max($0.percentUsed / 100, 0), 1) }
+        default:
+            bar = nil
+        }
+        return MenuBarImageBuilder.Spec(
+            frame: frame,
+            percentText: title.isEmpty ? nil : title,
+            barFraction: bar,
+            color: color)
     }
 
     public static func menuBarColor(headline: QuotaLimit?, state: QuotaStore.State,
@@ -111,6 +122,7 @@ public final class StatusItemController {
             popover.performClose(nil)
         } else {
             Task { await store.refreshIfStale(olderThan: 10) }
+            activityStore.refreshIfStale()
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             popover.contentViewController?.view.window?.makeKey()
         }

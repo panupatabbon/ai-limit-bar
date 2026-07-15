@@ -3,14 +3,16 @@ import SwiftUI
 public struct QuotaPopoverView: View {
     @Environment(\.colorScheme) private var colorScheme
     let store: QuotaStore
-    let settings: AppSettings
+    @Bindable var settings: AppSettings
+    let activity: ActivityStore
     let onOpenSettings: () -> Void
     let onQuit: () -> Void
 
-    public init(store: QuotaStore, settings: AppSettings,
+    public init(store: QuotaStore, settings: AppSettings, activity: ActivityStore,
                 onOpenSettings: @escaping () -> Void, onQuit: @escaping () -> Void) {
         self.store = store
         self.settings = settings
+        self.activity = activity
         self.onOpenSettings = onOpenSettings
         self.onQuit = onQuit
     }
@@ -25,14 +27,51 @@ public struct QuotaPopoverView: View {
 
     public var body: some View {
         let palette = self.palette
-        VStack(alignment: .leading, spacing: 10) {
-            header(palette)
-            content(palette)
+        VStack(alignment: .leading, spacing: 14) {
+            tabBar(palette)
+            switch settings.selectedTab {
+            case .claude: claudeTab(palette)
+            case .gemini: geminiTab(palette)
+            }
             footer(palette)
         }
-        .padding(14)
-        .frame(width: 240)
+        .padding(16)
+        .frame(width: 300)
         .background(palette.background)
+    }
+
+    // MARK: Tabs
+
+    @ViewBuilder
+    private func tabBar(_ palette: RetroPalette) -> some View {
+        HStack(spacing: 6) {
+            ForEach(ProviderTab.allCases, id: \.self) { tab in
+                Button {
+                    settings.selectedTab = tab
+                } label: {
+                    Text(tab.rawValue.uppercased())
+                        .font(PixelFont.swiftUI(size: 8))
+                        .foregroundStyle(settings.selectedTab == tab
+                                         ? palette.background : palette.textPrimary.opacity(0.7))
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(settings.selectedTab == tab ? palette.accentCyan : palette.surface)
+                }
+                .buttonStyle(.plain)
+            }
+            Spacer()
+        }
+    }
+
+    // MARK: Claude tab
+
+    @ViewBuilder
+    private func claudeTab(_ palette: RetroPalette) -> some View {
+        header(palette)
+        sectionHeader("QUOTA", palette)
+        quotaContent(palette)
+        sectionHeader("ACTIVITY 24H", palette)
+        activitySection(palette)
     }
 
     @ViewBuilder
@@ -42,9 +81,8 @@ public struct QuotaPopoverView: View {
                 .font(PixelFont.swiftUI(size: 9))
                 .foregroundStyle(palette.accentCyan)
             Spacer()
-            AvatarSpriteView(
-                sprite: SpriteLibrary.sprite(forProvider: "claude"),
-                color: headlineColor(palette), pixelScale: 2)
+            AvatarSpriteView(sprite: SpriteLibrary.sprite(forProvider: "claude"),
+                             color: headlineColor(palette), pixelScale: 2)
         }
     }
 
@@ -56,7 +94,19 @@ public struct QuotaPopoverView: View {
     }
 
     @ViewBuilder
-    private func content(_ palette: RetroPalette) -> some View {
+    private func sectionHeader(_ title: String, _ palette: RetroPalette) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(PixelFont.swiftUI(size: 7))
+                .foregroundStyle(palette.accentPink)
+            Rectangle()
+                .fill(palette.textPrimary.opacity(0.2))
+                .frame(height: 1)
+        }
+    }
+
+    @ViewBuilder
+    private func quotaContent(_ palette: RetroPalette) -> some View {
         switch store.state {
         case .loading:
             stateScreen("LOADING", hint: L10n.t(.loadingHint, settings.language), palette: palette)
@@ -110,29 +160,116 @@ public struct QuotaPopoverView: View {
                 .font(PixelFont.swiftUI(size: 7))
                 .foregroundStyle(palette.warn)
             if let last {
-                Text("\(L10n.t(.offlineLastUpdated, settings.language)): \(last.fetchedAt.formatted(date: .omitted, time: .shortened))")
+                Text(RelativeTimeFormatter.string(since: last.fetchedAt, now: Date()))
                     .font(.system(.caption2, design: .rounded))
                     .foregroundStyle(palette.textPrimary.opacity(0.6))
             }
         }
     }
 
+    // MARK: Activity
+
+    @ViewBuilder
+    private func activitySection(_ palette: RetroPalette) -> some View {
+        if let summary = activity.summary {
+            if summary.topSkills.isEmpty && summary.topAgents.isEmpty && summary.sessionCount == 0 {
+                Text("NO ACTIVITY")
+                    .font(PixelFont.swiftUI(size: 8))
+                    .foregroundStyle(palette.textPrimary.opacity(0.5))
+            } else {
+                VStack(alignment: .leading, spacing: 8) {
+                    if !summary.topSkills.isEmpty {
+                        activityGroup("SKILLS", items: summary.topSkills, palette: palette)
+                    }
+                    if !summary.topAgents.isEmpty {
+                        activityGroup("AGENTS", items: summary.topAgents, palette: palette)
+                    }
+                    Text("SESSIONS \(summary.sessionCount)")
+                        .font(PixelFont.swiftUI(size: 7))
+                        .foregroundStyle(palette.textPrimary.opacity(0.8))
+                }
+            }
+        } else {
+            Text(activity.isScanning ? "SCANNING…" : "NO ACTIVITY")
+                .font(PixelFont.swiftUI(size: 8))
+                .foregroundStyle(palette.textPrimary.opacity(0.5))
+        }
+    }
+
+    @ViewBuilder
+    private func activityGroup(_ title: String, items: [ActivityCount],
+                               palette: RetroPalette) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(PixelFont.swiftUI(size: 7))
+                .foregroundStyle(palette.accentCyan)
+            ForEach(items, id: \.name) { item in
+                HStack {
+                    Text(item.name)
+                        .font(.system(.caption, design: .monospaced))
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .foregroundStyle(palette.textPrimary)
+                    Spacer()
+                    Text("×\(item.count)")
+                        .font(PixelFont.swiftUI(size: 7))
+                        .foregroundStyle(palette.textPrimary.opacity(0.7))
+                }
+            }
+        }
+    }
+
+    // MARK: Gemini tab
+
+    @ViewBuilder
+    private func geminiTab(_ palette: RetroPalette) -> some View {
+        VStack(spacing: 12) {
+            AvatarSpriteView(sprite: SpriteLibrary.sprite(forProvider: "gemini"),
+                             color: palette.accentCyan, pixelScale: 3)
+            Text("INSERT CARTRIDGE")
+                .font(PixelFont.swiftUI(size: 11))
+                .foregroundStyle(palette.accentPink)
+            Text(L10n.t(.tabComingSoonHint, settings.language))
+                .font(.system(.caption, design: .rounded))
+                .foregroundStyle(palette.textPrimary.opacity(0.8))
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 32)
+    }
+
+    // MARK: Footer
+
     @ViewBuilder
     private func footer(_ palette: RetroPalette) -> some View {
-        HStack {
-            Button(action: onOpenSettings) {
-                Text("⚙ SETTINGS")
-                    .font(PixelFont.swiftUI(size: 7))
-                    .foregroundStyle(palette.textPrimary.opacity(0.7))
+        VStack(alignment: .leading, spacing: 8) {
+            Rectangle()
+                .fill(palette.textPrimary.opacity(0.2))
+                .frame(height: 1)
+            HStack {
+                TimelineView(.periodic(from: .now, by: 30)) { context in
+                    Text(updatedLabel(now: context.date))
+                        .font(PixelFont.swiftUI(size: 6))
+                        .foregroundStyle(palette.textPrimary.opacity(0.6))
+                }
+                Spacer()
+                Button(action: onOpenSettings) {
+                    Text("⚙ SETTINGS")
+                        .font(PixelFont.swiftUI(size: 7))
+                        .foregroundStyle(palette.textPrimary.opacity(0.7))
+                }
+                .buttonStyle(.plain)
+                Button(action: onQuit) {
+                    Text("⏻ QUIT")
+                        .font(PixelFont.swiftUI(size: 7))
+                        .foregroundStyle(palette.textPrimary.opacity(0.7))
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
-            Spacer()
-            Button(action: onQuit) {
-                Text("QUIT")
-                    .font(PixelFont.swiftUI(size: 7))
-                    .foregroundStyle(palette.textPrimary.opacity(0.7))
-            }
-            .buttonStyle(.plain)
         }
+    }
+
+    private func updatedLabel(now: Date) -> String {
+        guard let fetched = store.currentSnapshot?.fetchedAt else { return "UPDATED --" }
+        return "UPDATED " + RelativeTimeFormatter.string(since: fetched, now: now)
     }
 }

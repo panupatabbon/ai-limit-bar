@@ -8,7 +8,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         PixelFont.registerBundledFont()
         let settings = AppSettings()
         let store = QuotaStore(provider: ClaudeProvider())
-        let controller = StatusItemController(store: store, settings: settings)
+        let activity = ActivityStore()
+        let controller = StatusItemController(store: store, settings: settings, activity: activity)
         self.store = store
         self.controller = controller
         controller.start()

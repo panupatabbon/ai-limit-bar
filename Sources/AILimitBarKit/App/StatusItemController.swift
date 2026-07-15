@@ -5,15 +5,17 @@ import SwiftUI
 public final class StatusItemController {
     private let store: QuotaStore
     private let settings: AppSettings
+    private let activityStore: ActivityStore
     private var statusItem: NSStatusItem?
     private var popover: NSPopover?
     private var tickTimer: Timer?
     private var frameIndex = 0
     private lazy var settingsWindow = SettingsWindowController(settings: settings)
 
-    public init(store: QuotaStore, settings: AppSettings) {
+    public init(store: QuotaStore, settings: AppSettings, activity: ActivityStore) {
         self.store = store
         self.settings = settings
+        self.activityStore = activity
     }
 
     public func start() {
@@ -26,12 +28,13 @@ public final class StatusItemController {
         let popover = NSPopover()
         popover.behavior = .transient
         popover.contentViewController = NSHostingController(
-            rootView: QuotaPopoverView(store: store, settings: settings, onOpenSettings: { [weak self] in
+            rootView: QuotaPopoverView(store: store, settings: settings,
+                                       activity: activityStore) { [weak self] in
                 self?.popover?.performClose(nil)
                 self?.settingsWindow.show()
-            }, onQuit: {
+            } onQuit: {
                 NSApp.terminate(nil)
-            }))
+            })
         self.popover = popover
 
         tickTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in

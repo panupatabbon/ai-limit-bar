@@ -30,12 +30,12 @@ public struct SpriteFrame: Equatable, Sendable {
 }
 
 public struct Sprite: Sendable {
-    public let id: AvatarID
+    public let id: String
     public let frames: [SpriteFrame] // 4-frame popover loop
 
     public var menuBarFrames: [SpriteFrame] { Array(frames.prefix(2)) }
 
-    public init(id: AvatarID, base: SpriteFrame, alt: SpriteFrame, blink: SpriteFrame) {
+    public init(id: String, base: SpriteFrame, alt: SpriteFrame, blink: SpriteFrame) {
         self.id = id
         self.frames = [base, alt, base, blink]
     }

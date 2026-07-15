@@ -57,7 +57,7 @@ public final class StatusItemController {
         let palette = RetroTheme.palette(settings.theme, systemIsDark: systemIsDark)
         let headline = store.headlineLimit(pin: settings.headlinePin)
         let color = Self.menuBarColor(headline: headline, state: store.state, palette: palette)
-        let sprite = SpriteLibrary.sprite(for: settings.avatar)
+        let sprite = SpriteLibrary.sprite(forProvider: "claude")
         let frames = sprite.menuBarFrames
         button.image = frames[frameIndex % frames.count].nsImage(color: color, pixelSize: 1.1)
         button.image?.isTemplate = false

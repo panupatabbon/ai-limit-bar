@@ -3,7 +3,7 @@ import AppKit
 @testable import AILimitBarKit
 
 final class MenuBarImageBuilderTests: XCTestCase {
-    private var frame: SpriteFrame { SpriteLibrary.sprite(for: .boo).frames[0] }
+    private var frame: SpriteFrame { SpriteLibrary.sprite(forProvider: "claude").frames[0] }
 
     private func spec(text: String?, bar: Double?) -> MenuBarImageBuilder.Spec {
         .init(frame: frame, percentText: text, barFraction: bar, color: .systemGreen)

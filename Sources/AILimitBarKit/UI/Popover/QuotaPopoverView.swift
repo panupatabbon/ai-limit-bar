@@ -43,7 +43,7 @@ public struct QuotaPopoverView: View {
                 .foregroundStyle(palette.accentCyan)
             Spacer()
             AvatarSpriteView(
-                sprite: SpriteLibrary.sprite(for: settings.avatar),
+                sprite: SpriteLibrary.sprite(forProvider: "claude"),
                 color: headlineColor(palette), pixelScale: 2)
         }
     }

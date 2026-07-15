@@ -43,16 +43,6 @@ public struct SettingsView: View {
                 Toggle(t(.limitWeeklyModels), isOn: $settings.showWeeklyModels)
                 Toggle(t(.compactRows), isOn: $settings.compactRows)
             }
-            section(t(.settingsAvatar), palette) {
-                Text(t(.chooseAvatar))
-                    .font(.system(.caption, design: .rounded))
-                    .foregroundStyle(palette.textPrimary.opacity(0.6))
-                HStack(spacing: 16) {
-                    ForEach(AvatarID.allCases, id: \.self) { id in
-                        avatarButton(id, palette)
-                    }
-                }
-            }
         }
         .padding(20)
         .frame(width: 340)
@@ -70,23 +60,5 @@ public struct SettingsView: View {
                 .foregroundStyle(palette.accentPink)
             content()
         }
-    }
-
-    @ViewBuilder
-    private func avatarButton(_ id: AvatarID, _ palette: RetroPalette) -> some View {
-        Button {
-            settings.avatar = id
-        } label: {
-            VStack(spacing: 4) {
-                AvatarSpriteView(sprite: SpriteLibrary.sprite(for: id),
-                                 color: palette.ok, pixelScale: 2)
-                Text(id.rawValue.uppercased())
-                    .font(PixelFont.swiftUI(size: 6))
-            }
-            .padding(6)
-            .overlay(Rectangle().stroke(
-                settings.avatar == id ? palette.accentCyan : .clear, lineWidth: 2))
-        }
-        .buttonStyle(.plain)
     }
 }

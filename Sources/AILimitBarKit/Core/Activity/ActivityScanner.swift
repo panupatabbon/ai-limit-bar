@@ -9,16 +9,24 @@ public struct ActivityScanner: Sendable {
             .appendingPathComponent(".claude/projects")
     }
 
+    /// Files larger than this are skipped rather than read whole into memory:
+    /// other users' transcripts can be tens-to-hundreds of MB, and a full
+    /// String read every 5-minute scan risks a memory spike.
+    public static let maxFileBytes = 64 * 1024 * 1024
+
     let root: URL
     let window: TimeInterval
     let now: @Sendable () -> Date
+    let maxFileBytes: Int
 
     public init(root: URL = ActivityScanner.defaultRoot,
                 window: TimeInterval = 86_400,
-                now: @escaping @Sendable () -> Date = { Date() }) {
+                now: @escaping @Sendable () -> Date = { Date() },
+                maxFileBytes: Int = ActivityScanner.maxFileBytes) {
         self.root = root
         self.window = window
         self.now = now
+        self.maxFileBytes = maxFileBytes
     }
 
     public func scan() -> ActivitySummary {
@@ -29,14 +37,17 @@ public struct ActivityScanner: Sendable {
 
         let files = FileManager.default.enumerator(
             at: root,
-            includingPropertiesForKeys: [.contentModificationDateKey],
+            includingPropertiesForKeys: [.contentModificationDateKey, .fileSizeKey],
             options: [.skipsHiddenFiles])
 
         while let url = files?.nextObject() as? URL {
             guard url.pathExtension == "jsonl",
-                  let modified = try? url.resourceValues(forKeys: [.contentModificationDateKey])
-                      .contentModificationDate,
+                  let resourceValues = try? url.resourceValues(
+                      forKeys: [.contentModificationDateKey, .fileSizeKey]),
+                  let modified = resourceValues.contentModificationDate,
                   modified >= cutoff,
+                  let fileSize = resourceValues.fileSize,
+                  fileSize <= maxFileBytes,
                   let content = try? String(contentsOf: url, encoding: .utf8)
             else { continue }
             sessions += 1
@@ -56,6 +67,8 @@ public struct ActivityScanner: Sendable {
 
     private func top3(_ counts: [String: Int]) -> [ActivityCount] {
         counts.map { ActivityCount(name: $0.key, count: $0.value) }
+            // Sort by count descending, then name ascending (the swapped-tuple trick:
+            // comparing ($0.count, $1.name) > ($1.count, $0.name) flips the name order).
             .sorted { ($0.count, $1.name) > ($1.count, $0.name) }
             .prefix(3)
             .map { $0 }

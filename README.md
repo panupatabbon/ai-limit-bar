@@ -46,7 +46,8 @@ limit the % tracks · choose visible limits · compact rows.
 ### Provider Tabs
 
 Claude (live usage) and Gemini (coming soon) tabs let you switch between
-providers. Usage data persists per-provider.
+providers. Your selected tab persists across reopens; the Gemini tab shows a
+coming-soon screen until Gemini support lands.
 
 ### ACTIVITY 24H
 

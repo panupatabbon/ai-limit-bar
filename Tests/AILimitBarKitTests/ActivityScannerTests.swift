@@ -67,4 +67,46 @@ final class ActivityScannerTests: XCTestCase {
         let summary = ActivityScanner(root: URL(fileURLWithPath: "/nonexistent-\(UUID().uuidString)")).scan()
         XCTAssertEqual(summary.sessionCount, 0)
     }
+
+    func testScanSkipsFilesOverSizeCap() throws {
+        let dir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("activity-sizecap-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+
+        // Over the (tiny, test-injected) cap: skipped entirely.
+        let big = dir.appendingPathComponent("big.jsonl")
+        try #"{"name":"Skill","input":{"skill":"toobig"}}"#.write(
+            to: big, atomically: true, encoding: .utf8)
+
+        // Under the cap: still counted.
+        let small = dir.appendingPathComponent("small.jsonl")
+        try #"{}"#.write(to: small, atomically: true, encoding: .utf8)
+
+        let summary = ActivityScanner(root: dir, maxFileBytes: 10).scan()
+        XCTAssertEqual(summary.sessionCount, 1)
+        XCTAssertTrue(summary.topSkills.isEmpty)
+    }
+
+    func testTop3TruncatesAndBreaksTiesByNameAscending() throws {
+        let dir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("activity-top3-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+
+        let file = dir.appendingPathComponent("skills.jsonl")
+        try [
+            #"{"name":"Skill","input":{"skill":"zeta"}}"#,
+            #"{"name":"Skill","input":{"skill":"zeta"}}"#,
+            #"{"name":"Skill","input":{"skill":"alpha"}}"#,
+            #"{"name":"Skill","input":{"skill":"beta"}}"#,
+            #"{"name":"Skill","input":{"skill":"gamma"}}"#,
+        ].joined(separator: "\n").write(to: file, atomically: true, encoding: .utf8)
+
+        let summary = ActivityScanner(root: dir).scan()
+        // zeta:2, then alpha/beta/gamma tied at 1 -> name-ascending picks alpha, beta.
+        XCTAssertEqual(summary.topSkills, [
+            ActivityCount(name: "zeta", count: 2),
+            ActivityCount(name: "alpha", count: 1),
+            ActivityCount(name: "beta", count: 1),
+        ])
+    }
 }

@@ -10,7 +10,7 @@ public enum L10nKey: String, CaseIterable, Sendable {
     case compactRows
     case limitSession, limitWeeklyAll, limitWeeklyModels
     // Popover states
-    case hintInstallClaude, hintTokenExpired, offlineLastUpdated, loadingHint, tabComingSoonHint
+    case hintInstallClaude, hintTokenExpired, loadingHint, tabComingSoonHint
 }
 
 public enum L10n {
@@ -39,7 +39,6 @@ public enum L10n {
         .limitWeeklyModels: "Weekly (per model)",
         .hintInstallClaude: "Install and sign in to Claude Code first — this app reads its quota data.",
         .hintTokenExpired: "Use Claude Code once to renew the token, then this app recovers automatically.",
-        .offlineLastUpdated: "Last updated",
         .loadingHint: "Loading quota…",
         .tabComingSoonHint: "Gemini support is coming soon.",
     ]
@@ -65,7 +64,6 @@ public enum L10n {
         .limitWeeklyModels: "รายสัปดาห์ (รายโมเดล)",
         .hintInstallClaude: "ติดตั้งและล็อกอิน Claude Code ก่อน — แอปนี้อ่านข้อมูลโควต้าจาก Claude Code",
         .hintTokenExpired: "เปิดใช้ Claude Code หนึ่งครั้งเพื่อต่ออายุ token แล้วแอปจะกลับมาทำงานเอง",
-        .offlineLastUpdated: "อัปเดตล่าสุด",
         .loadingHint: "กำลังโหลดโควต้า…",
         .tabComingSoonHint: "รองรับ Gemini เร็วๆ นี้",
     ]

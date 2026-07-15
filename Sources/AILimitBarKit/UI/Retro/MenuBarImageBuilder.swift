@@ -4,7 +4,7 @@ import AppKit
 /// into ONE NSImage so spacing is exact and the button keeps standard
 /// menu-bar metrics (fixes the V1 popover-gap problem).
 public enum MenuBarImageBuilder {
-    public struct Spec {
+    public struct Spec: Equatable {
         public let frame: SpriteFrame
         public let percentText: String?
         public let barFraction: Double?  // 0...1

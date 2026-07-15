@@ -10,6 +10,7 @@ public final class StatusItemController {
     private var popover: NSPopover?
     private var tickTimer: Timer?
     private var frameIndex = 0
+    private var lastSpec: MenuBarImageBuilder.Spec?
     private lazy var settingsWindow = SettingsWindowController(settings: settings)
 
     public init(store: QuotaStore, settings: AppSettings, activity: ActivityStore) {
@@ -64,6 +65,8 @@ public final class StatusItemController {
             headline: headline, state: store.state,
             showPercent: settings.showPercentInMenuBar,
             frame: frames[frameIndex % frames.count], palette: palette)
+        guard spec != lastSpec else { return }
+        lastSpec = spec
         button.image = MenuBarImageBuilder.image(for: spec)
         button.attributedTitle = NSAttributedString(string: "")
     }

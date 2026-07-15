@@ -4,21 +4,10 @@ import SwiftUI
 
 final class RetroThemeTests: XCTestCase {
     func testSeverityColorMapping() {
-        let p = RetroTheme.dark
+        let p = RetroTheme.jules
         XCTAssertEqual(RetroTheme.color(for: .ok, in: p), p.ok)
         XCTAssertEqual(RetroTheme.color(for: .warn, in: p), p.warn)
         XCTAssertEqual(RetroTheme.color(for: .critical, in: p), p.critical)
-    }
-
-    func testPaletteSelection() {
-        XCTAssertEqual(RetroTheme.palette(.dark, systemIsDark: false).background,
-                       RetroTheme.dark.background)
-        XCTAssertEqual(RetroTheme.palette(.light, systemIsDark: true).background,
-                       RetroTheme.light.background)
-        XCTAssertEqual(RetroTheme.palette(.system, systemIsDark: true).background,
-                       RetroTheme.dark.background)
-        XCTAssertEqual(RetroTheme.palette(.system, systemIsDark: false).background,
-                       RetroTheme.light.background)
     }
 
     func testFontRegistration() {
@@ -27,12 +16,16 @@ final class RetroThemeTests: XCTestCase {
         XCTAssertNotNil(NSFont(name: "Press Start 2P", size: 12) ?? NSFont(name: "PressStart2P-Regular", size: 12))
     }
 
-    func testSoftenedPaletteValues() {
-        XCTAssertEqual(RetroTheme.dark.background, Color(hex: 0x14141B))
-        XCTAssertEqual(RetroTheme.dark.ok, Color(hex: 0x4ADE80))
-        XCTAssertEqual(RetroTheme.dark.warn, Color(hex: 0xE8C547))
-        XCTAssertEqual(RetroTheme.dark.critical, Color(hex: 0xF07171))
-        XCTAssertEqual(RetroTheme.light.background, Color(hex: 0xF5EFDF))
-        XCTAssertEqual(RetroTheme.light.ok, Color(hex: 0x3B8C5A))
+    func testJulesPaletteValues() {
+        // DESIGN.md core palette (dark-only)
+        XCTAssertEqual(RetroTheme.jules.background, Color(hex: 0x09051C))
+        XCTAssertEqual(RetroTheme.jules.surface, Color(hex: 0x1D0245))
+        XCTAssertEqual(RetroTheme.jules.textPrimary, Color(hex: 0xFFFFFF))
+        XCTAssertEqual(RetroTheme.jules.accentPink, Color(hex: 0xFF79C6))
+        XCTAssertEqual(RetroTheme.jules.accentCyan, Color(hex: 0x00D9FF))
+        // Functional severity colors
+        XCTAssertEqual(RetroTheme.jules.ok, Color(hex: 0x00D9FF))
+        XCTAssertEqual(RetroTheme.jules.warn, Color(hex: 0xFFC300))
+        XCTAssertEqual(RetroTheme.jules.critical, Color(hex: 0xFF5C5C))
     }
 }

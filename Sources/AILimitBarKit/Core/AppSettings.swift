@@ -1,8 +1,6 @@
 import Foundation
 import Observation
 
-public enum AppLanguage: String, CaseIterable, Sendable { case en, th }
-public enum ThemePreference: String, CaseIterable, Sendable { case system, dark, light }
 public enum ProviderTab: String, CaseIterable, Sendable { case claude, gemini }
 
 @MainActor
@@ -10,8 +8,6 @@ public enum ProviderTab: String, CaseIterable, Sendable { case claude, gemini }
 public final class AppSettings {
     private let defaults: UserDefaults
 
-    public var language: AppLanguage { didSet { defaults.set(language.rawValue, forKey: "language") } }
-    public var theme: ThemePreference { didSet { defaults.set(theme.rawValue, forKey: "theme") } }
     public var showPercentInMenuBar: Bool { didSet { defaults.set(showPercentInMenuBar, forKey: "showPercentInMenuBar") } }
     public var headlinePin: HeadlinePin { didSet { defaults.set(headlinePin.rawValue, forKey: "headlinePin") } }
     public var showSession: Bool { didSet { defaults.set(showSession, forKey: "showSession") } }
@@ -22,8 +18,6 @@ public final class AppSettings {
 
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        language = AppLanguage(rawValue: defaults.string(forKey: "language") ?? "") ?? .en
-        theme = ThemePreference(rawValue: defaults.string(forKey: "theme") ?? "") ?? .system
         showPercentInMenuBar = defaults.object(forKey: "showPercentInMenuBar") as? Bool ?? true
         headlinePin = HeadlinePin(rawValue: defaults.string(forKey: "headlinePin") ?? "") ?? .auto
         showSession = defaults.object(forKey: "showSession") as? Bool ?? true

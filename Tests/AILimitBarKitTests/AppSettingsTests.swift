@@ -14,8 +14,6 @@ final class AppSettingsTests: XCTestCase {
 
     func testDefaults() {
         let s = AppSettings(defaults: defaults)
-        XCTAssertEqual(s.language, .en)
-        XCTAssertEqual(s.theme, .system)
         XCTAssertTrue(s.showPercentInMenuBar)
         XCTAssertEqual(s.headlinePin, .auto)
         XCTAssertTrue(s.showSession)
@@ -26,16 +24,12 @@ final class AppSettingsTests: XCTestCase {
 
     func testPersistsAcrossInstances() {
         let s1 = AppSettings(defaults: defaults)
-        s1.language = .th
-        s1.theme = .dark
         s1.showPercentInMenuBar = false
         s1.headlinePin = .session
         s1.showWeeklyModels = false
         s1.compactRows = true
 
         let s2 = AppSettings(defaults: defaults)
-        XCTAssertEqual(s2.language, .th)
-        XCTAssertEqual(s2.theme, .dark)
         XCTAssertFalse(s2.showPercentInMenuBar)
         XCTAssertEqual(s2.headlinePin, .session)
         XCTAssertFalse(s2.showWeeklyModels)

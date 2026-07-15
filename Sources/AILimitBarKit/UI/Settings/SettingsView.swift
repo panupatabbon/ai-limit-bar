@@ -1,47 +1,31 @@
 import SwiftUI
 
 public struct SettingsView: View {
-    @Environment(\.colorScheme) private var colorScheme
     @Bindable var settings: AppSettings
 
     public init(settings: AppSettings) {
         self.settings = settings
     }
 
-    private var palette: RetroPalette {
-        RetroTheme.palette(settings.theme, systemIsDark: colorScheme == .dark)
-    }
-
-    private func t(_ key: L10nKey) -> String { L10n.t(key, settings.language) }
+    private var palette: RetroPalette { RetroTheme.jules }
 
     public var body: some View {
         let palette = self.palette
         VStack(alignment: .leading, spacing: 16) {
-            section(t(.settingsGeneral), palette) {
-                Picker(t(.settingsLanguage), selection: $settings.language) {
-                    Text("English").tag(AppLanguage.en)
-                    Text("ไทย").tag(AppLanguage.th)
+            section("DISPLAY", palette) {
+                Toggle("Show % in menu bar", isOn: $settings.showPercentInMenuBar)
+                Picker("Menu bar % tracks", selection: $settings.headlinePin) {
+                    Text("Auto (most used)").tag(HeadlinePin.auto)
+                    Text("Session").tag(HeadlinePin.session)
+                    Text("Weekly").tag(HeadlinePin.weekly)
                 }
-                Picker(t(.settingsTheme), selection: $settings.theme) {
-                    Text(t(.themeSystem)).tag(ThemePreference.system)
-                    Text(t(.themeDark)).tag(ThemePreference.dark)
-                    Text(t(.themeLight)).tag(ThemePreference.light)
-                }
-            }
-            section(t(.settingsDisplay), palette) {
-                Toggle(t(.showPercent), isOn: $settings.showPercentInMenuBar)
-                Picker(t(.headlinePinLabel), selection: $settings.headlinePin) {
-                    Text(t(.pinAuto)).tag(HeadlinePin.auto)
-                    Text(t(.pinSession)).tag(HeadlinePin.session)
-                    Text(t(.pinWeekly)).tag(HeadlinePin.weekly)
-                }
-                Text(t(.visibleLimits))
-                    .font(.system(.caption, design: .rounded))
+                Text("Visible limits")
+                    .font(.system(.caption, design: .monospaced))
                     .foregroundStyle(palette.textPrimary.opacity(0.6))
-                Toggle(t(.limitSession), isOn: $settings.showSession)
-                Toggle(t(.limitWeeklyAll), isOn: $settings.showWeeklyAll)
-                Toggle(t(.limitWeeklyModels), isOn: $settings.showWeeklyModels)
-                Toggle(t(.compactRows), isOn: $settings.compactRows)
+                Toggle("Session (5-hour)", isOn: $settings.showSession)
+                Toggle("Weekly (all models)", isOn: $settings.showWeeklyAll)
+                Toggle("Weekly (per model)", isOn: $settings.showWeeklyModels)
+                Toggle("Compact rows", isOn: $settings.compactRows)
             }
         }
         .padding(20)
@@ -55,7 +39,7 @@ public struct SettingsView: View {
     private func section(_ title: String, _ palette: RetroPalette,
                          @ViewBuilder content: () -> some View) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(title.uppercased())
+            Text(title)
                 .font(PixelFont.swiftUI(size: 8))
                 .foregroundStyle(palette.accentPink)
             content()

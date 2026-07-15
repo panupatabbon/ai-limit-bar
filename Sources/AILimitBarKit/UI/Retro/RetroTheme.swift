@@ -12,33 +12,19 @@ public struct RetroPalette: Equatable, Sendable {
 }
 
 public enum RetroTheme {
-    public static let dark = RetroPalette(
-        background: Color(hex: 0x14141B),
-        surface: Color(hex: 0x1E1E28),
-        textPrimary: Color(hex: 0xD8D8E4),
-        accentPink: Color(hex: 0xE85D9E),
-        accentCyan: Color(hex: 0x5BC8E8),
-        ok: Color(hex: 0x4ADE80),
-        warn: Color(hex: 0xE8C547),
-        critical: Color(hex: 0xF07171))
-
-    public static let light = RetroPalette(
-        background: Color(hex: 0xF5EFDF),
-        surface: Color(hex: 0xEAE2CC),
-        textPrimary: Color(hex: 0x3A3A42),
-        accentPink: Color(hex: 0xA8487E),
-        accentCyan: Color(hex: 0x2E7D96),
-        ok: Color(hex: 0x3B8C5A),
-        warn: Color(hex: 0xB0821F),
-        critical: Color(hex: 0xC25454))
-
-    public static func palette(_ pref: ThemePreference, systemIsDark: Bool) -> RetroPalette {
-        switch pref {
-        case .dark: return dark
-        case .light: return light
-        case .system: return systemIsDark ? dark : light
-        }
-    }
+    /// Jules-inspired dark cyberpunk palette (see DESIGN.md). Dark-only —
+    /// the light theme and theme switching were removed by design.
+    /// Severity colors are functional additions: cyan ok / yellow warn
+    /// (DESIGN.md's yellow accent) / red critical (magenta stays brand-only).
+    public static let jules = RetroPalette(
+        background: Color(hex: 0x09051C),
+        surface: Color(hex: 0x1D0245),
+        textPrimary: Color(hex: 0xFFFFFF),
+        accentPink: Color(hex: 0xFF79C6),
+        accentCyan: Color(hex: 0x00D9FF),
+        ok: Color(hex: 0x00D9FF),
+        warn: Color(hex: 0xFFC300),
+        critical: Color(hex: 0xFF5C5C))
 
     public static func color(for severity: Severity, in palette: RetroPalette) -> Color {
         switch severity {

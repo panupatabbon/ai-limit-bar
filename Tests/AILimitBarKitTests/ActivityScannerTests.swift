@@ -51,6 +51,17 @@ final class ActivityScannerTests: XCTestCase {
                                            ActivityCount(name: "beta", count: 1)])
         XCTAssertEqual(summary.topAgents, [ActivityCount(name: "general-purpose", count: 2),
                                            ActivityCount(name: "reviewer", count: 1)])
+        XCTAssertEqual(summary.skillEventCount, 4) // alpha ×3 + beta ×1
+        XCTAssertEqual(summary.agentEventCount, 3) // general-purpose ×2 + reviewer ×1
+    }
+
+    func testPercentShare() {
+        XCTAssertEqual(ActivitySummary.percentShare(3, of: 4), 75)
+        XCTAssertEqual(ActivitySummary.percentShare(1, of: 3), 33)
+        XCTAssertEqual(ActivitySummary.percentShare(2, of: 3), 67)
+        XCTAssertEqual(ActivitySummary.percentShare(0, of: 10), 0)
+        XCTAssertEqual(ActivitySummary.percentShare(5, of: 0), 0)   // no events
+        XCTAssertEqual(ActivitySummary.percentShare(1, of: 1000), 1) // never rounds to 0
     }
 
     func testScanEmptyDirectory() throws {

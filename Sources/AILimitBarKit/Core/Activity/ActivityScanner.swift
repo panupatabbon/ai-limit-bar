@@ -62,6 +62,8 @@ public struct ActivityScanner: Sendable {
 
         return ActivitySummary(
             topSkills: top3(skills), topAgents: top3(agents),
+            skillEventCount: skills.values.reduce(0, +),
+            agentEventCount: agents.values.reduce(0, +),
             sessionCount: sessions, scannedAt: now())
     }
 

@@ -1,7 +1,6 @@
 import SwiftUI
 
 public struct QuotaPopoverView: View {
-    @Environment(\.colorScheme) private var colorScheme
     let store: QuotaStore
     @Bindable var settings: AppSettings
     let activity: ActivityStore
@@ -21,9 +20,7 @@ public struct QuotaPopoverView: View {
         (snapshot?.limits ?? []).filter { settings.isVisible($0.kind) }
     }
 
-    private var palette: RetroPalette {
-        RetroTheme.palette(settings.theme, systemIsDark: colorScheme == .dark)
-    }
+    private var palette: RetroPalette { RetroTheme.jules }
 
     public var body: some View {
         let palette = self.palette
@@ -109,11 +106,15 @@ public struct QuotaPopoverView: View {
     private func quotaContent(_ palette: RetroPalette) -> some View {
         switch store.state {
         case .loading:
-            stateScreen("LOADING", hint: L10n.t(.loadingHint, settings.language), palette: palette)
+            stateScreen("LOADING", hint: "Loading quota…", palette: palette)
         case .credentialsMissing:
-            stateScreen("INSERT COIN", hint: L10n.t(.hintInstallClaude, settings.language), palette: palette)
+            stateScreen("INSERT COIN",
+                        hint: "Install and sign in to Claude Code first — this app reads its quota data.",
+                        palette: palette)
         case .tokenExpired:
-            stateScreen("TOKEN EXPIRED", hint: L10n.t(.hintTokenExpired, settings.language), palette: palette)
+            stateScreen("TOKEN EXPIRED",
+                        hint: "Use Claude Code once to renew the token, then this app recovers automatically.",
+                        palette: palette)
         case .ready, .offline:
             limitList(palette)
             if case .offline(let last) = store.state {
@@ -144,7 +145,7 @@ public struct QuotaPopoverView: View {
                 .foregroundStyle(palette.accentPink)
             if !hint.isEmpty {
                 Text(hint)
-                    .font(.system(.caption, design: .rounded))
+                    .font(.system(.caption, design: .monospaced))
                     .foregroundStyle(palette.textPrimary.opacity(0.8))
                     .multilineTextAlignment(.center)
             }
@@ -161,7 +162,7 @@ public struct QuotaPopoverView: View {
                 .foregroundStyle(palette.warn)
             if let last {
                 Text(RelativeTimeFormatter.string(since: last.fetchedAt, now: Date()))
-                    .font(.system(.caption2, design: .rounded))
+                    .font(.system(.caption2, design: .monospaced))
                     .foregroundStyle(palette.textPrimary.opacity(0.6))
             }
         }
@@ -179,10 +180,12 @@ public struct QuotaPopoverView: View {
             } else {
                 VStack(alignment: .leading, spacing: 8) {
                     if !summary.topSkills.isEmpty {
-                        activityGroup("SKILLS", items: summary.topSkills, palette: palette)
+                        activityGroup("SKILLS", items: summary.topSkills,
+                                      total: summary.skillEventCount, palette: palette)
                     }
                     if !summary.topAgents.isEmpty {
-                        activityGroup("AGENTS", items: summary.topAgents, palette: palette)
+                        activityGroup("AGENTS", items: summary.topAgents,
+                                      total: summary.agentEventCount, palette: palette)
                     }
                     Text("SESSIONS \(summary.sessionCount)")
                         .font(PixelFont.swiftUI(size: 7))
@@ -198,7 +201,7 @@ public struct QuotaPopoverView: View {
 
     @ViewBuilder
     private func activityGroup(_ title: String, items: [ActivityCount],
-                               palette: RetroPalette) -> some View {
+                               total: Int, palette: RetroPalette) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
                 .font(PixelFont.swiftUI(size: 7))
@@ -211,7 +214,7 @@ public struct QuotaPopoverView: View {
                         .truncationMode(.middle)
                         .foregroundStyle(palette.textPrimary)
                     Spacer()
-                    Text("×\(item.count)")
+                    Text("\(ActivitySummary.percentShare(item.count, of: total))%")
                         .font(PixelFont.swiftUI(size: 7))
                         .foregroundStyle(palette.textPrimary.opacity(0.7))
                 }
@@ -229,8 +232,8 @@ public struct QuotaPopoverView: View {
             Text("INSERT CARTRIDGE")
                 .font(PixelFont.swiftUI(size: 11))
                 .foregroundStyle(palette.accentPink)
-            Text(L10n.t(.tabComingSoonHint, settings.language))
-                .font(.system(.caption, design: .rounded))
+            Text("Gemini support is coming soon.")
+                .font(.system(.caption, design: .monospaced))
                 .foregroundStyle(palette.textPrimary.opacity(0.8))
         }
         .frame(maxWidth: .infinity)

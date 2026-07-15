@@ -40,7 +40,7 @@ Or build from source: `./Scripts/bundle.sh` (needs Xcode 15+ command line tools)
 
 ## Settings
 
-Language EN/ไทย · theme Dark/Light/System · show/hide menu bar % · pick which
+Show/hide menu bar % · pick which
 limit the % tracks · choose visible limits · compact rows.
 
 ### Provider Tabs

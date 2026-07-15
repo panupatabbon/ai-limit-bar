@@ -33,14 +33,29 @@ Or build from source: `./Scripts/bundle.sh` (needs Xcode 15+ command line tools)
 - The token stays in memory, is never logged, and is sent to exactly one
   place: `https://api.anthropic.com/api/oauth/usage` over HTTPS.
 - No telemetry, no analytics, no auto-update pings.
+- The activity section scans `~/.claude/projects` locally and keeps only
+  name+count aggregates in memory.
 - Note: the usage endpoint is the same one Claude Code's `/usage` command
   uses; it is not officially documented and may change.
 
 ## Settings
 
 Language EN/ไทย · theme Dark/Light/System · show/hide menu bar % · pick which
-limit the % tracks · choose visible limits · compact rows · three animated
-pixel avatars (BOO / BUG / BOT).
+limit the % tracks · choose visible limits · compact rows.
+
+### Provider Tabs
+
+Claude (live usage) and Gemini (coming soon) tabs let you switch between
+providers. Usage data persists per-provider.
+
+### ACTIVITY 24H
+
+Reads aggregate counts (skill/agent names only) from your local Claude Code
+transcripts; nothing leaves your machine.
+
+## Behavior
+
+- The menu bar animation pauses while macOS Low Power Mode is on.
 
 ## License
 

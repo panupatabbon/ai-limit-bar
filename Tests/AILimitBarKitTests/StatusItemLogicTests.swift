@@ -21,40 +21,24 @@ final class StatusItemLogicTests: XCTestCase {
             headline: headline, state: .offline(last: snap), showPercent: true), "58%")
     }
 
-    func testColor() {
-        let palette = RetroTheme.dark
-        // NSColor(Color) equality is unreliable — compare sRGB components instead.
-        let ready = StatusItemController.menuBarColor(
-            headline: headline, state: .ready(snap), palette: palette)
-            .usingColorSpace(.sRGB)!
-        let expected = NSColor(palette.ok).usingColorSpace(.sRGB)!
-        XCTAssertEqual(ready.redComponent, expected.redComponent, accuracy: 0.01)
-        XCTAssertEqual(ready.greenComponent, expected.greenComponent, accuracy: 0.01)
-        XCTAssertEqual(ready.blueComponent, expected.blueComponent, accuracy: 0.01)
-        XCTAssertEqual(StatusItemController.menuBarColor(
-            headline: nil, state: .tokenExpired, palette: palette), .systemGray)
-    }
-
     func testMenuBarSpec() {
         let frame = SpriteLibrary.sprite(forProvider: "claude").menuBarFrames[0]
-        let palette = RetroTheme.dark
 
         let ready = StatusItemController.menuBarSpec(
-            headline: headline, state: .ready(snap), showPercent: true,
-            frame: frame, palette: palette)
+            headline: headline, state: .ready(snap), showPercent: true, frame: frame)
         XCTAssertEqual(ready.percentText, "58%")
         XCTAssertEqual(ready.barFraction, 0.58)
+        XCTAssertEqual(ready.color, .white) // menu bar is always white
 
         let hidden = StatusItemController.menuBarSpec(
-            headline: headline, state: .ready(snap), showPercent: false,
-            frame: frame, palette: palette)
+            headline: headline, state: .ready(snap), showPercent: false, frame: frame)
         XCTAssertNil(hidden.percentText)
         XCTAssertEqual(hidden.barFraction, 0.58) // bar still shown when % hidden
 
         let expired = StatusItemController.menuBarSpec(
-            headline: nil, state: .tokenExpired, showPercent: true,
-            frame: frame, palette: palette)
+            headline: nil, state: .tokenExpired, showPercent: true, frame: frame)
         XCTAssertEqual(expired.percentText, "--")
         XCTAssertNil(expired.barFraction)
+        XCTAssertEqual(expired.color, .white)
     }
 }

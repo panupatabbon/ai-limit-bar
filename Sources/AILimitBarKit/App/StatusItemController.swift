@@ -52,19 +52,14 @@ public final class StatusItemController {
         render()
     }
 
-    private var systemIsDark: Bool {
-        NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-    }
-
     private func render() {
         guard let button = statusItem?.button else { return }
-        let palette = RetroTheme.palette(settings.theme, systemIsDark: systemIsDark)
         let headline = store.headlineLimit(pin: settings.headlinePin)
         let frames = SpriteLibrary.sprite(forProvider: "claude").menuBarFrames
         let spec = Self.menuBarSpec(
             headline: headline, state: store.state,
             showPercent: settings.showPercentInMenuBar,
-            frame: frames[frameIndex % frames.count], palette: palette)
+            frame: frames[frameIndex % frames.count])
         guard spec != lastSpec else { return }
         lastSpec = spec
         button.image = MenuBarImageBuilder.image(for: spec)
@@ -84,10 +79,9 @@ public final class StatusItemController {
     }
 
     public static func menuBarSpec(headline: QuotaLimit?, state: QuotaStore.State,
-                                   showPercent: Bool, frame: SpriteFrame,
-                                   palette: RetroPalette) -> MenuBarImageBuilder.Spec {
+                                   showPercent: Bool,
+                                   frame: SpriteFrame) -> MenuBarImageBuilder.Spec {
         let title = menuBarTitle(headline: headline, state: state, showPercent: showPercent)
-        let color = menuBarColor(headline: headline, state: state, palette: palette)
         let bar: Double?
         switch state {
         case .ready, .offline:
@@ -95,23 +89,13 @@ public final class StatusItemController {
         default:
             bar = nil
         }
+        // Menu bar renders white always (user preference); quota severity
+        // colors remain in the popover.
         return MenuBarImageBuilder.Spec(
             frame: frame,
             percentText: title.isEmpty ? nil : title,
             barFraction: bar,
-            color: color)
-    }
-
-    public static func menuBarColor(headline: QuotaLimit?, state: QuotaStore.State,
-                                    palette: RetroPalette) -> NSColor {
-        switch state {
-        case .credentialsMissing, .tokenExpired, .loading:
-            return .systemGray
-        case .ready, .offline:
-            guard let headline else { return .systemGray }
-            return NSColor(RetroTheme.color(for: Severity(percent: headline.percentUsed),
-                                            in: palette))
-        }
+            color: .white)
     }
 
     @objc private func handleClick() {
@@ -126,7 +110,17 @@ public final class StatusItemController {
         } else {
             Task { await store.refreshIfStale(olderThan: 10) }
             activityStore.refreshIfStale()
-            popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+            // NSStatusBarButton is a flipped view: .maxY is the visual bottom,
+            // so the popover hangs below the menu bar instead of hugging its top.
+            popover.show(relativeTo: button.bounds, of: button, preferredEdge: .maxY)
+            // NSPopover still anchors slightly into the menu bar; pin the
+            // popover window's top edge just below the status bar's bottom.
+            if let popoverWindow = popover.contentViewController?.view.window,
+               let statusWindow = button.window {
+                var frame = popoverWindow.frame
+                frame.origin.y = (statusWindow.frame.minY - 2) - frame.height
+                popoverWindow.setFrame(frame, display: true)
+            }
             popover.contentViewController?.view.window?.makeKey()
         }
     }

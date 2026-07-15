@@ -4,7 +4,7 @@ A retro 8-bit menu bar app for macOS that shows your Claude Pro/Max
 subscription quota — session (5-hour), weekly, and per-model limits with
 used %, HP-style pixel bars, and reset times.
 
-![screenshot placeholder — add after first release]
+<img width="906" height="582" alt="CleanShot 2569-07-15 at 13 46 15" src="https://github.com/user-attachments/assets/b67a25e7-8227-4230-9554-3cb70528276c" />
 
 ## Requirements
 

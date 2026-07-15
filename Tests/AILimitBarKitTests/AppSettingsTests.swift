@@ -22,7 +22,6 @@ final class AppSettingsTests: XCTestCase {
         XCTAssertTrue(s.showWeeklyAll)
         XCTAssertTrue(s.showWeeklyModels)
         XCTAssertFalse(s.compactRows)
-        XCTAssertEqual(s.avatar, .boo)
     }
 
     func testPersistsAcrossInstances() {
@@ -33,7 +32,6 @@ final class AppSettingsTests: XCTestCase {
         s1.headlinePin = .session
         s1.showWeeklyModels = false
         s1.compactRows = true
-        s1.avatar = .bot
 
         let s2 = AppSettings(defaults: defaults)
         XCTAssertEqual(s2.language, .th)
@@ -42,7 +40,13 @@ final class AppSettingsTests: XCTestCase {
         XCTAssertEqual(s2.headlinePin, .session)
         XCTAssertFalse(s2.showWeeklyModels)
         XCTAssertTrue(s2.compactRows)
-        XCTAssertEqual(s2.avatar, .bot)
+    }
+
+    func testSelectedTabDefaultsAndPersists() {
+        let s1 = AppSettings(defaults: defaults)
+        XCTAssertEqual(s1.selectedTab, .claude)
+        s1.selectedTab = .gemini
+        XCTAssertEqual(AppSettings(defaults: defaults).selectedTab, .gemini)
     }
 
     func testVisibility() {

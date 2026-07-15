@@ -3,7 +3,7 @@ import Observation
 
 public enum AppLanguage: String, CaseIterable, Sendable { case en, th }
 public enum ThemePreference: String, CaseIterable, Sendable { case system, dark, light }
-public enum AvatarID: String, CaseIterable, Sendable { case boo, bug, bot }
+public enum ProviderTab: String, CaseIterable, Sendable { case claude, gemini }
 
 @MainActor
 @Observable
@@ -18,7 +18,7 @@ public final class AppSettings {
     public var showWeeklyAll: Bool { didSet { defaults.set(showWeeklyAll, forKey: "showWeeklyAll") } }
     public var showWeeklyModels: Bool { didSet { defaults.set(showWeeklyModels, forKey: "showWeeklyModels") } }
     public var compactRows: Bool { didSet { defaults.set(compactRows, forKey: "compactRows") } }
-    public var avatar: AvatarID { didSet { defaults.set(avatar.rawValue, forKey: "avatar") } }
+    public var selectedTab: ProviderTab { didSet { defaults.set(selectedTab.rawValue, forKey: "selectedTab") } }
 
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -30,7 +30,7 @@ public final class AppSettings {
         showWeeklyAll = defaults.object(forKey: "showWeeklyAll") as? Bool ?? true
         showWeeklyModels = defaults.object(forKey: "showWeeklyModels") as? Bool ?? true
         compactRows = defaults.object(forKey: "compactRows") as? Bool ?? false
-        avatar = AvatarID(rawValue: defaults.string(forKey: "avatar") ?? "") ?? .boo
+        selectedTab = ProviderTab(rawValue: defaults.string(forKey: "selectedTab") ?? "") ?? .claude
     }
 
     public func isVisible(_ kind: LimitKind) -> Bool {

@@ -35,9 +35,14 @@ public enum MenuBarImageBuilder {
         return max(textWidth, barWidth)
     }
 
+    static func textAttributes(color: NSColor) -> [NSAttributedString.Key: Any] {
+        [.font: PixelFont.nsFont(size: 7),
+         .kern: PixelFont.tracking(forSize: 7),
+         .foregroundColor: color]
+    }
+
     static func width(of text: String) -> CGFloat {
-        let font = PixelFont.nsFont(size: 7)
-        return ceil((text as NSString).size(withAttributes: [.font: font]).width)
+        ceil((text as NSString).size(withAttributes: textAttributes(color: .white)).width)
     }
 
     public static func image(for spec: Spec) -> NSImage {
@@ -52,8 +57,7 @@ public enum MenuBarImageBuilder {
         if let text = spec.percentText {
             (text as NSString).draw(
                 at: NSPoint(x: rightX, y: 8),
-                withAttributes: [.font: PixelFont.nsFont(size: 7),
-                                 .foregroundColor: spec.color])
+                withAttributes: textAttributes(color: spec.color))
         }
         if let fraction = spec.barFraction {
             let clamped = min(max(fraction, 0), 1)

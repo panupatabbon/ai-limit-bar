@@ -26,4 +26,19 @@ public enum PixelFont {
         registerBundledFont()
         return Font.custom(fontName, size: size)
     }
+
+    /// Half a pixel cell (6.25% of size). Press Start 2P packs its 8×8
+    /// glyphs tight; all-caps labels need air, in grid-true steps.
+    public static func tracking(forSize size: CGFloat) -> CGFloat {
+        size / 16
+    }
+}
+
+public extension View {
+    /// Pixel type with its grid-true tracking applied — the one way to set
+    /// Press Start 2P in SwiftUI views.
+    func pixelType(size: CGFloat) -> some View {
+        font(PixelFont.swiftUI(size: size))
+            .tracking(PixelFont.tracking(forSize: size))
+    }
 }

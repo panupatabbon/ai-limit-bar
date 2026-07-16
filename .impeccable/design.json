@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-16T23:40:00+07:00",
+  "title": "Design System: AILimitBar",
+  "extensions": {
+    "colorMeta": {
+      "void-purple": {
+        "role": "neutral",
+        "displayName": "Void Purple",
+        "canonical": "#09051C",
+        "tonalRamp": ["oklch(15% 0.05 290)", "oklch(25% 0.06 290)", "oklch(35% 0.06 290)", "oklch(45% 0.06 290)", "oklch(55% 0.06 290)", "oklch(70% 0.05 290)", "oklch(85% 0.03 290)", "oklch(95% 0.01 290)"]
+      },
+      "dungeon-violet": {
+        "role": "neutral",
+        "displayName": "Dungeon Violet",
+        "canonical": "#1D0245",
+        "tonalRamp": ["oklch(15% 0.09 295)", "oklch(24% 0.11 295)", "oklch(35% 0.12 295)", "oklch(45% 0.12 295)", "oklch(55% 0.11 295)", "oklch(70% 0.09 295)", "oklch(85% 0.05 295)", "oklch(95% 0.02 295)"]
+      },
+      "pixel-white": {
+        "role": "neutral",
+        "displayName": "Pixel White",
+        "canonical": "#FFFFFF",
+        "tonalRamp": ["oklch(15% 0 0)", "oklch(30% 0 0)", "oklch(45% 0 0)", "oklch(60% 0 0)", "oklch(72% 0 0)", "oklch(84% 0 0)", "oklch(93% 0 0)", "oklch(100% 0 0)"]
+      },
+      "neon-magenta": {
+        "role": "primary",
+        "displayName": "Neon Magenta",
+        "canonical": "#FF79C6",
+        "tonalRamp": ["oklch(20% 0.09 345)", "oklch(32% 0.13 345)", "oklch(45% 0.16 345)", "oklch(58% 0.18 345)", "oklch(68% 0.18 345)", "oklch(76% 0.16 345)", "oklch(87% 0.09 345)", "oklch(95% 0.04 345)"]
+      },
+      "coin-cyan": {
+        "role": "primary",
+        "displayName": "Coin Cyan",
+        "canonical": "#00D9FF",
+        "tonalRamp": ["oklch(20% 0.06 215)", "oklch(32% 0.09 215)", "oklch(45% 0.11 215)", "oklch(58% 0.13 215)", "oklch(70% 0.14 215)", "oklch(81% 0.14 215)", "oklch(90% 0.08 215)", "oklch(96% 0.03 215)"]
+      },
+      "warning-gold": {
+        "role": "secondary",
+        "displayName": "Warning Gold",
+        "canonical": "#FFC300",
+        "tonalRamp": ["oklch(20% 0.05 85)", "oklch(34% 0.08 85)", "oklch(48% 0.11 85)", "oklch(62% 0.14 85)", "oklch(74% 0.16 85)", "oklch(84% 0.17 85)", "oklch(91% 0.11 85)", "oklch(96% 0.05 85)"]
+      },
+      "damage-red": {
+        "role": "secondary",
+        "displayName": "Damage Red",
+        "canonical": "#FF5C5C",
+        "tonalRamp": ["oklch(20% 0.08 25)", "oklch(32% 0.12 25)", "oklch(44% 0.16 25)", "oklch(56% 0.19 25)", "oklch(66% 0.19 25)", "oklch(76% 0.15 25)", "oklch(87% 0.08 25)", "oklch(95% 0.03 25)"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "State-screen titles (LOADING, INSERT COIN). One per screen at most." },
+      "headline": { "displayName": "Headline", "purpose": "Plan name at the top of the popover." },
+      "title": { "displayName": "Title", "purpose": "Limit-row labels, percent values, provider tabs." },
+      "label": { "displayName": "Label", "purpose": "Section headers, footer actions, menu bar percent, badges." },
+      "caption": { "displayName": "Caption", "purpose": "Reset labels and UPDATED timestamp. The size floor." },
+      "body": { "displayName": "Body (SF Mono)", "purpose": "Hints, error guidance, activity names — anything sentence-length." }
+    },
+    "shadows": [],
+    "motion": [
+      { "name": "sprite-tick", "value": "0.3s steps(1)", "purpose": "Mascot frame cycle (base → alt → blink). Menu bar variant pauses in Low Power Mode." },
+      { "name": "status-refresh", "value": "1s steps(1)", "purpose": "Menu bar image refresh timer; discrete redraws, no tweening anywhere." }
+    ],
+    "breakpoints": []
+  },
+  "components": [
+    {
+      "name": "Provider Tab (active)",
+      "kind": "chip",
+      "refersTo": "tab-active",
+      "description": "Sharp cyan-filled tab with inverted void-purple pixel text.",
+      "html": "<button class=\"ds-tab ds-tab-active\">CLAUDE</button>",
+      "css": ".ds-tab { font-family: 'Press Start 2P', monospace; font-size: 8px; text-transform: uppercase; padding: 6px 10px; border: none; border-radius: 0; cursor: pointer; } .ds-tab-active { background: #00D9FF; color: #09051C; } .ds-tab-active:hover { background: #33E1FF; } .ds-tab:focus-visible { outline: 1px solid rgba(255,255,255,0.4); outline-offset: 2px; }"
+    },
+    {
+      "name": "Provider Tab (inactive)",
+      "kind": "chip",
+      "refersTo": "tab-inactive",
+      "description": "Dungeon-violet tab at 70% white text.",
+      "html": "<button class=\"ds-tab ds-tab-inactive\">GEMINI</button>",
+      "css": ".ds-tab { font-family: 'Press Start 2P', monospace; font-size: 8px; text-transform: uppercase; padding: 6px 10px; border: none; border-radius: 0; cursor: pointer; } .ds-tab-inactive { background: #1D0245; color: rgba(255,255,255,0.7); } .ds-tab-inactive:hover { color: #FFFFFF; } .ds-tab:focus-visible { outline: 1px solid rgba(255,255,255,0.4); outline-offset: 2px; }"
+    },
+    {
+      "name": "Pixel Progress Bar",
+      "kind": "custom",
+      "refersTo": "progress-segment",
+      "description": "12 discrete 20×10 segments in a 1px frame; fill color is severity-derived.",
+      "html": "<div class=\"ds-pixel-bar\" role=\"img\" aria-label=\"58 percent used\"><i class=\"f\"></i><i class=\"f\"></i><i class=\"f\"></i><i class=\"f\"></i><i class=\"f\"></i><i class=\"f\"></i><i class=\"f\"></i><i></i><i></i><i></i><i></i><i></i></div>",
+      "css": ".ds-pixel-bar { display: inline-flex; gap: 2px; padding: 2px; border: 1px solid rgba(255,255,255,0.4); background: #09051C; } .ds-pixel-bar i { width: 20px; height: 10px; background: #1D0245; } .ds-pixel-bar i.f { background: #00D9FF; }"
+    },
+    {
+      "name": "Limit Row",
+      "kind": "custom",
+      "refersTo": "progress-segment",
+      "description": "Label + severity percent + active marker over the bar, reset caption below.",
+      "html": "<div class=\"ds-limit-row\"><div class=\"ds-limit-head\"><span class=\"ds-limit-kind\">SESSION</span><span class=\"ds-limit-pct\">58% <span class=\"ds-limit-active\">◀</span></span></div><div class=\"ds-pixel-bar\"><i class=\"f\"></i><i class=\"f\"></i><i class=\"f\"></i><i class=\"f\"></i><i class=\"f\"></i><i class=\"f\"></i><i class=\"f\"></i><i></i><i></i><i></i><i></i><i></i></div><span class=\"ds-limit-reset\">RESET 2H 15M</span></div>",
+      "css": ".ds-limit-row { display: flex; flex-direction: column; gap: 4px; background: #09051C; padding: 8px; width: max-content; } .ds-limit-head { display: flex; justify-content: space-between; gap: 24px; font-family: 'Press Start 2P', monospace; font-size: 8px; } .ds-limit-kind { color: #FFFFFF; } .ds-limit-pct { color: #00D9FF; } .ds-limit-active { color: #FF79C6; } .ds-limit-reset { font-family: 'Press Start 2P', monospace; font-size: 6px; color: rgba(255,255,255,0.7); } .ds-pixel-bar { display: inline-flex; gap: 2px; padding: 2px; border: 1px solid rgba(255,255,255,0.4); width: max-content; } .ds-pixel-bar i { width: 20px; height: 10px; background: #1D0245; } .ds-pixel-bar i.f { background: #00D9FF; }"
+    },
+    {
+      "name": "Section Header",
+      "kind": "nav",
+      "description": "Neon magenta pixel label over a 1px 20%-white divider; used for exactly two sections.",
+      "html": "<div class=\"ds-section-header\"><span>QUOTA</span></div>",
+      "css": ".ds-section-header { display: flex; flex-direction: column; gap: 4px; background: #09051C; padding: 8px; min-width: 200px; } .ds-section-header span { font-family: 'Press Start 2P', monospace; font-size: 7px; color: #FF79C6; text-transform: uppercase; } .ds-section-header::after { content: ''; height: 1px; background: rgba(255,255,255,0.2); }"
+    },
+    {
+      "name": "State Screen",
+      "kind": "custom",
+      "refersTo": "state-title",
+      "description": "Game-voice title in magenta over a plain-English SF Mono hint.",
+      "html": "<div class=\"ds-state-screen\"><span class=\"ds-state-title\">INSERT COIN</span><span class=\"ds-state-hint\">Install and sign in to Claude Code first — this app reads its quota data.</span></div>",
+      "css": ".ds-state-screen { display: flex; flex-direction: column; align-items: center; gap: 8px; background: #09051C; padding: 16px; max-width: 280px; text-align: center; } .ds-state-title { font-family: 'Press Start 2P', monospace; font-size: 12px; color: #FF79C6; } .ds-state-hint { font-family: 'SF Mono', ui-monospace, monospace; font-size: 10px; line-height: 1.5; color: rgba(255,255,255,0.8); }"
+    },
+    {
+      "name": "Footer Action",
+      "kind": "button",
+      "refersTo": "footer-action",
+      "description": "Plain pixel-text button at 70% white; the quietest interactive element.",
+      "html": "<button class=\"ds-footer-action\">⚙ SETTINGS</button>",
+      "css": ".ds-footer-action { font-family: 'Press Start 2P', monospace; font-size: 7px; color: rgba(255,255,255,0.7); background: #09051C; border: none; border-radius: 0; padding: 4px 6px; cursor: pointer; } .ds-footer-action:hover { color: #FFFFFF; } .ds-footer-action:focus-visible { outline: 1px solid rgba(255,255,255,0.4); outline-offset: 2px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Party Status Screen",
+    "overview": "AILimitBar renders Claude quota the way a JRPG renders its party: HP bars, exact numbers, and a mascot sprite, all readable in a single glance from a pause-menu-dark screen. The system is a native SwiftUI translation of the Jules cyberpunk palette — deep purple-black surfaces, neon magenta as the brand voice, cyan as the working accent — worn as a game skin over an instrument core. The system explicitly rejects the SaaS analytics dashboard and retro-at-the-cost-of-legibility: the pixel font is reserved for short uppercase labels; anything sentence-length switches to SF Mono.",
+    "keyCharacteristics": [
+      "Dark-only, dual-surface world: Void Purple base with Dungeon Violet panels",
+      "Pixel type (Press Start 2P) for labels, SF Mono for prose — never the reverse",
+      "Severity speaks in exactly three colors: Coin Cyan → Warning Gold → Damage Red",
+      "100% flat: depth is a surface-color change or a 1px stroke, never a shadow",
+      "Sharp corners everywhere; the grid is the ornament",
+      "Motion is a heartbeat, not a show: 0.3s sprite ticks, paused in Low Power Mode"
+    ],
+    "rules": [
+      { "name": "The Magenta-Is-Brand Rule", "body": "Neon Magenta never encodes severity or data. It is prohibited on bars, percentages, and warnings; it belongs to headers, state titles, and brand marks only. Severity speaks exclusively through the Cyan → Gold → Red trio.", "section": "colors" },
+      { "name": "The Severity Trio Rule", "body": "Severity(percent:) is the single source of truth: below 60% is Coin Cyan, 60–84% is Warning Gold, 85%+ is Damage Red. Any UI that shows quota state derives its color from this function — never hand-picked.", "section": "colors" },
+      { "name": "The White-Opacity Ramp Rule", "body": "There are no gray hex values. Secondary text is Pixel White at reduced opacity (0.8 / 0.7 / 0.6 / 0.5), so every \"gray\" stays tinted by the purple ground beneath it.", "section": "colors" },
+      { "name": "The Pixel-For-Labels Rule", "body": "Press Start 2P is prohibited on any string longer than ~3 words or any sentence with punctuation. Short uppercase labels only; the moment text must be read rather than recognized, it becomes SF Mono.", "section": "typography" },
+      { "name": "The All-Caps Contract", "body": "Everything set in Press Start 2P is uppercase. Everything set in SF Mono is sentence case. Mixing the two conventions in one element is a bug.", "section": "typography" },
+      { "name": "The Flat Cartridge Rule", "body": "No shadows — not on cards, not on popovers, not on focus states. Flat by doctrine: depth is a surface-color step (Void Purple → Dungeon Violet) or a 1px stroke. If a new element seems to need a shadow, it actually needs a surface change or a border.", "section": "elevation" },
+      { "name": "The Twelve Segment Rule", "body": "Quota bars are exactly 12 segments (20×10pt, 2pt gaps); any usage above 0% lights at least one segment — a nearly-empty bar never lies about being untouched.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do derive every quota color from Severity(percent:) — Coin Cyan under 60, Warning Gold 60–84, Damage Red at 85+.",
+      "Do keep Press Start 2P uppercase and under ~3 words; switch to SF Mono the moment text becomes a sentence.",
+      "Do express depth only as Void Purple → Dungeon Violet surface steps or 1px white-opacity strokes.",
+      "Do keep the 12-segment bar geometry (20×10pt cells, 2pt gaps) for any new quota display.",
+      "Do write state-screen titles in game voice and hints in plain English (\"INSERT COIN\" + \"Install and sign in to Claude Code first\").",
+      "Do pause all animation under macOS Low Power Mode; the app is a quiet resident."
+    ],
+    "donts": [
+      "Don't build anything that reads as a SaaS analytics dashboard — no white cards, no metric tiles, no hero-number-with-sparkline layouts.",
+      "Don't let retro cost legibility: never set hints, errors, or activity names in the pixel font, and never render Press Start 2P below 6pt.",
+      "Don't use Neon Magenta for severity, data, or bars — it is brand voice only (The Magenta-Is-Brand Rule).",
+      "Don't add shadows, glows, or blurs anywhere; the system is flat by doctrine (The Flat Cartridge Rule).",
+      "Don't introduce rounded corners, gradients, or gray hex values — corners are 0pt, fills are solid, \"gray\" is white at reduced opacity.",
+      "Don't replace native macOS form controls with custom-drawn retro widgets; the skin never reinvents standard affordances."
+    ]
+  }
+}

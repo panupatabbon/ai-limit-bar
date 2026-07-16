@@ -78,6 +78,8 @@ public final class QuotaStore {
                 await self.refresh()
             }
         }
+        // Let the system coalesce wake-ups; polling has no precision needs.
+        pollTimer?.tolerance = interval * 0.1
         Task { await refresh() }
     }
 
@@ -94,6 +96,7 @@ public final class QuotaStore {
         retryTimer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in
             Task { @MainActor in await self?.refresh() }
         }
+        retryTimer?.tolerance = delay * 0.1
     }
 
     public func headlineLimit(pin: HeadlinePin) -> QuotaLimit? {

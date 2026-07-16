@@ -17,6 +17,12 @@ final class SettingsWindowController {
             window.title = "AI LIMIT BAR"
             window.styleMask = [.titled, .closable]
             window.isReleasedWhenClosed = false
+            // The content is dark-only by doctrine; pin the window to dark
+            // appearance so native controls and the title bar match instead
+            // of following a light system theme onto the purple background.
+            window.appearance = NSAppearance(named: .darkAqua)
+            window.titlebarAppearsTransparent = true
+            window.backgroundColor = RetroTheme.nsBackground
             self.window = window
         }
         window?.center()

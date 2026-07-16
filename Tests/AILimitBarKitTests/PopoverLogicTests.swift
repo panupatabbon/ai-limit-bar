@@ -21,4 +21,12 @@ final class PopoverLogicTests: XCTestCase {
         XCTAssertEqual(QuotaPopoverView.visibleLimits(snapshot, settings: settings).map(\.kind), [.weeklyAll])
         XCTAssertEqual(QuotaPopoverView.visibleLimits(nil, settings: settings), [])
     }
+
+    func testNoDataHintNamesTheCause() {
+        // Self-inflicted (every limit toggled off) must not read like a fetch failure.
+        XCTAssertEqual(QuotaPopoverView.noDataHint(allHidden: true),
+                       "All limits are hidden. Turn one back on in Settings.")
+        XCTAssertEqual(QuotaPopoverView.noDataHint(allHidden: false),
+                       "Your plan reported no limits yet. Try again after using Claude.")
+    }
 }

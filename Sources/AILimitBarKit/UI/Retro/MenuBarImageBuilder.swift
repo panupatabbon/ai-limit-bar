@@ -45,15 +45,36 @@ public enum MenuBarImageBuilder {
         ceil((text as NSString).size(withAttributes: textAttributes(color: .white)).width)
     }
 
+    static let providerGap: CGFloat = 8
+
     public static func image(for spec: Spec) -> NSImage {
-        let size = NSSize(width: layoutWidth(for: spec), height: height)
-        let image = NSImage(size: size)
+        image(for: [spec])
+    }
+
+    public static func layoutWidth(for specs: [Spec]) -> CGFloat {
+        guard !specs.isEmpty else { return 0 }
+        return specs.map { layoutWidth(for: $0) }.reduce(0, +)
+            + CGFloat(specs.count - 1) * providerGap
+    }
+
+    public static func image(for specs: [Spec]) -> NSImage {
+        let image = NSImage(size: NSSize(width: layoutWidth(for: specs), height: height))
         image.lockFocus()
+        var x: CGFloat = 0
+        for spec in specs {
+            draw(spec, atX: x)
+            x += layoutWidth(for: spec) + providerGap
+        }
+        image.unlockFocus()
+        image.isTemplate = false
+        return image
+    }
 
+    private static func draw(_ spec: Spec, atX x: CGFloat) {
         spec.frame.nsImage(color: spec.color, pixelSize: 1)
-            .draw(in: NSRect(x: 0, y: 1, width: avatarSide, height: avatarSide))
+            .draw(in: NSRect(x: x, y: 1, width: avatarSide, height: avatarSide))
 
-        let rightX = avatarSide + gap
+        let rightX = x + avatarSide + gap
         if let text = spec.percentText {
             (text as NSString).draw(
                 at: NSPoint(x: rightX, y: 8),
@@ -69,9 +90,5 @@ public enum MenuBarImageBuilder {
             NSRect(x: rightX, y: 3,
                    width: barSize.width * clamped, height: barSize.height).fill()
         }
-
-        image.unlockFocus()
-        image.isTemplate = false
-        return image
     }
 }

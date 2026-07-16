@@ -30,4 +30,20 @@ final class MenuBarImageBuilderTests: XCTestCase {
         XCTAssertEqual(image.size.width, MenuBarImageBuilder.layoutWidth(for: s))
         XCTAssertFalse(image.isTemplate)
     }
+
+    func testMultiSpecWidthAddsGapBetweenBlocks() {
+        let a = spec(text: nil, bar: nil)      // 16
+        let b = spec(text: nil, bar: 0.5)      // 33
+        XCTAssertEqual(MenuBarImageBuilder.layoutWidth(for: [a, b]),
+                       16 + MenuBarImageBuilder.providerGap + 33)
+        XCTAssertEqual(MenuBarImageBuilder.layoutWidth(for: [a]), 16)
+        XCTAssertEqual(MenuBarImageBuilder.layoutWidth(for: []), 0)
+    }
+
+    func testMultiSpecImageMatchesLayout() {
+        let specs = [spec(text: "42%", bar: 0.42), spec(text: nil, bar: nil)]
+        let image = MenuBarImageBuilder.image(for: specs)
+        XCTAssertEqual(image.size.height, 18)
+        XCTAssertEqual(image.size.width, MenuBarImageBuilder.layoutWidth(for: specs))
+    }
 }

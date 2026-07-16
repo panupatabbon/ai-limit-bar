@@ -53,4 +53,20 @@ final class AppSettingsTests: XCTestCase {
         s.showWeeklyModels = false
         XCTAssertFalse(s.isVisible(.weeklyModel("Fable")))
     }
+
+    func testEnabledProvidersDefaultAndPersistence() {
+        let s1 = AppSettings(defaults: defaults)
+        XCTAssertEqual(s1.enabledProviders, [.claude])
+        s1.enabledProviders = [.claude, .codex]
+        XCTAssertEqual(AppSettings(defaults: defaults).enabledProviders, [.claude, .codex])
+    }
+
+    func testSanitizedProviders() {
+        // Unknown values dropped; a set with no live provider gets .claude back.
+        XCTAssertEqual(AppSettings.sanitizedProviders(nil), [.claude])
+        XCTAssertEqual(AppSettings.sanitizedProviders([]), [.claude])
+        XCTAssertEqual(AppSettings.sanitizedProviders(["garbage", "claude"]), [.claude])
+        XCTAssertEqual(AppSettings.sanitizedProviders(["cursor"]), [.cursor, .claude])
+        XCTAssertEqual(AppSettings.sanitizedProviders(["claude", "gemini"]), [.claude, .gemini])
+    }
 }

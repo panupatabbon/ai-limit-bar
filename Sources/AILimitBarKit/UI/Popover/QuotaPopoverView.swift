@@ -38,7 +38,7 @@ public struct QuotaPopoverView: View {
             tabBar(palette)
             switch settings.selectedTab {
             case .claude: claudeTab(palette)
-            case .gemini: geminiTab(palette)
+            default: geminiTab(palette)
             }
             footer(palette)
         }
@@ -54,7 +54,7 @@ public struct QuotaPopoverView: View {
     @ViewBuilder
     private func tabBar(_ palette: RetroPalette) -> some View {
         HStack(spacing: 6) {
-            ForEach(ProviderTab.allCases, id: \.self) { tab in
+            ForEach(ProviderID.allCases, id: \.self) { tab in
                 Button {
                     settings.selectedTab = tab
                 } label: {

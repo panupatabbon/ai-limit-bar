@@ -1,8 +1,6 @@
 import Foundation
 import Observation
 
-public enum ProviderTab: String, CaseIterable, Sendable { case claude, gemini }
-
 @MainActor
 @Observable
 public final class AppSettings {
@@ -14,9 +12,9 @@ public final class AppSettings {
     public var showWeeklyAll: Bool { didSet { defaults.set(showWeeklyAll, forKey: "showWeeklyAll") } }
     public var showWeeklyModels: Bool { didSet { defaults.set(showWeeklyModels, forKey: "showWeeklyModels") } }
     public var compactRows: Bool { didSet { defaults.set(compactRows, forKey: "compactRows") } }
-    /// Deliberately not persisted while Gemini is a placeholder: every open
-    /// must land on Claude so the primary glance never hits a dead end.
-    public var selectedTab: ProviderTab = .claude
+    /// Deliberately not persisted while non-live tabs exist: every open
+    /// must land on a live provider so the primary glance never dead-ends.
+    public var selectedTab: ProviderID = .claude
 
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults

@@ -20,11 +20,21 @@ public struct QuotaPopoverView: View {
         (snapshot?.limits ?? []).filter { settings.isVisible($0.kind) }
     }
 
+    /// "NO DATA" must name its cause — an all-hidden filter is the user's own
+    /// doing and shouldn't read like a fetch failure.
+    public static func noDataHint(allHidden: Bool) -> String {
+        allHidden
+            ? "All limits are hidden. Turn one back on in Settings."
+            : "Your plan reported no limits yet. Try again after using Claude."
+    }
+
     private var palette: RetroPalette { RetroTheme.jules }
 
     public var body: some View {
         let palette = self.palette
-        VStack(alignment: .leading, spacing: 14) {
+        // Rhythm: 16pt between zones (tabs / header / sections / footer),
+        // 8pt binds a section header to its own content (see claudeTab).
+        VStack(alignment: .leading, spacing: 16) {
             tabBar(palette)
             switch settings.selectedTab {
             case .claude: claudeTab(palette)
@@ -33,7 +43,9 @@ public struct QuotaPopoverView: View {
             footer(palette)
         }
         .padding(16)
-        .frame(width: 300)
+        // Width derives from the HP bar's pixel grid: 266pt bar + 32pt
+        // padding, so every right edge lands on the same 266pt measure.
+        .frame(width: PixelProgressBar.totalWidth + 32)
         .background(palette.background)
     }
 
@@ -47,7 +59,7 @@ public struct QuotaPopoverView: View {
                     settings.selectedTab = tab
                 } label: {
                     Text(tab.rawValue.uppercased())
-                        .font(PixelFont.swiftUI(size: 8))
+                        .pixelType(size: 8)
                         .foregroundStyle(settings.selectedTab == tab
                                          ? palette.background : palette.textPrimary.opacity(0.7))
                         .padding(.horizontal, 10)
@@ -55,6 +67,9 @@ public struct QuotaPopoverView: View {
                         .background(settings.selectedTab == tab ? palette.accentCyan : palette.surface)
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("\(tab.rawValue.capitalized) tab")
+                .accessibilityAddTraits(settings.selectedTab == tab ? [.isSelected] : [])
+                .pixelFocusRing()
             }
             Spacer()
         }
@@ -65,36 +80,46 @@ public struct QuotaPopoverView: View {
     @ViewBuilder
     private func claudeTab(_ palette: RetroPalette) -> some View {
         header(palette)
-        sectionHeader("QUOTA", palette)
-        quotaContent(palette)
-        sectionHeader("ACTIVITY 24H", palette)
-        activitySection(palette)
+        VStack(alignment: .leading, spacing: 8) {
+            sectionHeader("QUOTA", palette)
+            quotaContent(palette)
+        }
+        VStack(alignment: .leading, spacing: 8) {
+            sectionHeader("ACTIVITY 24H", palette)
+            activitySection(palette)
+        }
     }
 
     @ViewBuilder
     private func header(_ palette: RetroPalette) -> some View {
         HStack {
             Text(store.currentSnapshot?.planName ?? "AI QUOTA")
-                .font(PixelFont.swiftUI(size: 9))
+                .pixelType(size: 9)
                 .foregroundStyle(palette.accentCyan)
             Spacer()
             AvatarSpriteView(sprite: SpriteLibrary.sprite(forProvider: "claude"),
-                             color: headlineColor(palette), pixelScale: 2)
+                             color: headlineColor(palette), pixelScale: 2,
+                             mood: SpriteMood(severity: headlineSeverity))
         }
     }
 
+    private var headlineSeverity: Severity? {
+        store.headlineLimit(pin: settings.headlinePin)
+            .map { Severity(percent: $0.percentUsed) }
+    }
+
     private func headlineColor(_ palette: RetroPalette) -> Color {
-        guard let headline = store.headlineLimit(pin: settings.headlinePin) else {
+        guard let severity = headlineSeverity else {
             return palette.textPrimary.opacity(0.5)
         }
-        return RetroTheme.color(for: Severity(percent: headline.percentUsed), in: palette)
+        return RetroTheme.color(for: severity, in: palette)
     }
 
     @ViewBuilder
     private func sectionHeader(_ title: String, _ palette: RetroPalette) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
-                .font(PixelFont.swiftUI(size: 7))
+                .pixelType(size: 7)
                 .foregroundStyle(palette.accentPink)
             Rectangle()
                 .fill(palette.textPrimary.opacity(0.2))
@@ -106,7 +131,8 @@ public struct QuotaPopoverView: View {
     private func quotaContent(_ palette: RetroPalette) -> some View {
         switch store.state {
         case .loading:
-            stateScreen("LOADING", hint: "Loading quota…", palette: palette)
+            stateScreen("LOADING", hint: "Reading usage from your Claude Code account…",
+                        palette: palette)
         case .credentialsMissing:
             stateScreen("INSERT COIN",
                         hint: "Install and sign in to Claude Code first — this app reads its quota data.",
@@ -127,10 +153,13 @@ public struct QuotaPopoverView: View {
     private func limitList(_ palette: RetroPalette) -> some View {
         let limits = Self.visibleLimits(store.currentSnapshot, settings: settings)
         if limits.isEmpty {
-            stateScreen("NO DATA", hint: "", palette: palette)
+            let allHidden = !(store.currentSnapshot?.limits ?? []).isEmpty
+            stateScreen("NO DATA", hint: Self.noDataHint(allHidden: allHidden), palette: palette)
         } else {
             VStack(alignment: .leading, spacing: 12) {
-                ForEach(Array(limits.enumerated()), id: \.offset) { _, limit in
+                // Identity by kind (unique per snapshot), not position — rows
+                // keep their identity if the API ever reorders limits.
+                ForEach(limits, id: \.kind) { limit in
                     LimitRowView(limit: limit, palette: palette, compact: settings.compactRows)
                 }
             }
@@ -141,7 +170,7 @@ public struct QuotaPopoverView: View {
     private func stateScreen(_ title: String, hint: String, palette: RetroPalette) -> some View {
         VStack(spacing: 8) {
             Text(title)
-                .font(PixelFont.swiftUI(size: 12))
+                .pixelType(size: 12)
                 .foregroundStyle(palette.accentPink)
             if !hint.isEmpty {
                 Text(hint)
@@ -158,13 +187,31 @@ public struct QuotaPopoverView: View {
     private func offlineBadge(_ last: QuotaSnapshot?, palette: RetroPalette) -> some View {
         HStack(spacing: 6) {
             Text("OFFLINE")
-                .font(PixelFont.swiftUI(size: 7))
+                .pixelType(size: 7)
                 .foregroundStyle(palette.warn)
             if let last {
                 Text(RelativeTimeFormatter.string(since: last.fetchedAt, now: Date()))
-                    .font(.system(.caption2, design: .monospaced))
+                    .font(.system(.caption, design: .monospaced))
                     .foregroundStyle(palette.textPrimary.opacity(0.6))
             }
+            Spacer()
+            // Auto-retry keeps running underneath (backoff up to 5 min);
+            // this makes the recovery path visible and immediate.
+            Button {
+                Task { await store.refresh() }
+            } label: {
+                HStack(spacing: 2) {
+                    Text("RETRY")
+                        .pixelType(size: 7)
+                    Text("▶")
+                        .font(.system(size: 8))
+                }
+                .foregroundStyle(palette.accentCyan)
+                .contentShape(Rectangle().inset(by: -6))
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Retry now")
+            .pixelFocusRing()
         }
     }
 
@@ -175,7 +222,7 @@ public struct QuotaPopoverView: View {
         if let summary = activity.summary {
             if summary.topSkills.isEmpty && summary.topAgents.isEmpty && summary.sessionCount == 0 {
                 Text("NO ACTIVITY")
-                    .font(PixelFont.swiftUI(size: 8))
+                    .pixelType(size: 8)
                     .foregroundStyle(palette.textPrimary.opacity(0.5))
             } else {
                 VStack(alignment: .leading, spacing: 8) {
@@ -188,13 +235,15 @@ public struct QuotaPopoverView: View {
                                       total: summary.agentEventCount, palette: palette)
                     }
                     Text("SESSIONS \(summary.sessionCount)")
-                        .font(PixelFont.swiftUI(size: 7))
+                        .help("Claude Code sessions in the last 24 hours")
+                        .accessibilityLabel("\(summary.sessionCount) Claude Code sessions in the last 24 hours")
+                        .pixelType(size: 7)
                         .foregroundStyle(palette.textPrimary.opacity(0.8))
                 }
             }
         } else {
             Text(activity.isScanning ? "SCANNING…" : "NO ACTIVITY")
-                .font(PixelFont.swiftUI(size: 8))
+                .pixelType(size: 8)
                 .foregroundStyle(palette.textPrimary.opacity(0.5))
         }
     }
@@ -203,9 +252,16 @@ public struct QuotaPopoverView: View {
     private func activityGroup(_ title: String, items: [ActivityCount],
                                total: Int, palette: RetroPalette) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(PixelFont.swiftUI(size: 7))
-                .foregroundStyle(palette.accentCyan)
+            HStack {
+                Text(title)
+                    .pixelType(size: 7)
+                    .foregroundStyle(palette.accentCyan)
+                Spacer()
+                // Labels the % column: these are event shares, not quota.
+                Text("% OF EVENTS")
+                    .pixelType(size: 6)
+                    .foregroundStyle(palette.textPrimary.opacity(0.5))
+            }
             ForEach(items, id: \.name) { item in
                 HStack {
                     Text(item.name)
@@ -215,7 +271,7 @@ public struct QuotaPopoverView: View {
                         .foregroundStyle(palette.textPrimary)
                     Spacer()
                     Text("\(ActivitySummary.percentShare(item.count, of: total))%")
-                        .font(PixelFont.swiftUI(size: 7))
+                        .pixelType(size: 7)
                         .foregroundStyle(palette.textPrimary.opacity(0.7))
                 }
             }
@@ -230,7 +286,7 @@ public struct QuotaPopoverView: View {
             AvatarSpriteView(sprite: SpriteLibrary.sprite(forProvider: "gemini"),
                              color: palette.accentCyan, pixelScale: 3)
             Text("INSERT CARTRIDGE")
-                .font(PixelFont.swiftUI(size: 11))
+                .pixelType(size: 12)
                 .foregroundStyle(palette.accentPink)
             Text("Gemini support is coming soon.")
                 .font(.system(.caption, design: .monospaced))
@@ -251,22 +307,34 @@ public struct QuotaPopoverView: View {
             HStack {
                 TimelineView(.periodic(from: .now, by: 30)) { context in
                     Text(updatedLabel(now: context.date))
-                        .font(PixelFont.swiftUI(size: 6))
+                        .pixelType(size: 6)
                         .foregroundStyle(palette.textPrimary.opacity(0.6))
                 }
                 Spacer()
                 Button(action: onOpenSettings) {
-                    Text("⚙ SETTINGS")
-                        .font(PixelFont.swiftUI(size: 7))
-                        .foregroundStyle(palette.textPrimary.opacity(0.7))
+                    // Symbol glyphs don't exist in Press Start 2P — render
+                    // them via the system face, same treatment as ◀ and ▶.
+                    HStack(spacing: 2) {
+                        Text("⚙").font(.system(size: 8))
+                        Text("SETTINGS").pixelType(size: 7)
+                    }
+                    .foregroundStyle(palette.textPrimary.opacity(0.7))
+                    .contentShape(Rectangle().inset(by: -6))
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Settings")
+                .pixelFocusRing()
                 Button(action: onQuit) {
-                    Text("⏻ QUIT")
-                        .font(PixelFont.swiftUI(size: 7))
-                        .foregroundStyle(palette.textPrimary.opacity(0.7))
+                    HStack(spacing: 2) {
+                        Text("⏻").font(.system(size: 8))
+                        Text("QUIT").pixelType(size: 7)
+                    }
+                    .foregroundStyle(palette.textPrimary.opacity(0.7))
+                    .contentShape(Rectangle().inset(by: -6))
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Quit")
+                .pixelFocusRing()
             }
         }
     }

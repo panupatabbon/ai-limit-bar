@@ -41,6 +41,9 @@ public final class StatusItemController {
         tickTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.tick() }
         }
+        // Animation steps tolerate ±0.2s drift; coalesced wake-ups cost less
+        // energy for an all-day resident.
+        tickTimer?.tolerance = 0.2
         tick()
     }
 
@@ -55,21 +58,69 @@ public final class StatusItemController {
     private func render() {
         guard let button = statusItem?.button else { return }
         let headline = store.headlineLimit(pin: settings.headlinePin)
-        let frames = SpriteLibrary.sprite(forProvider: "claude").menuBarFrames
+        // Before the spec gate: the countdown in the description keeps moving
+        // even while the rendered image stays identical.
+        let description = Self.statusDescription(headline: headline, state: store.state)
+        button.toolTip = description
+        button.setAccessibilityLabel(description)
+        let sprite = SpriteLibrary.sprite(forProvider: "claude")
+        // The mascot's body language follows the headline severity: calm at
+        // rest (occasional blink), pacing when a limit runs hot.
+        let mood: SpriteMood
+        switch store.state {
+        case .ready, .offline:
+            mood = SpriteMood(severity: headline.map { Severity(percent: $0.percentUsed) })
+        default:
+            mood = .calm
+        }
+        let darkAppearance = button.effectiveAppearance
+            .bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
         let spec = Self.menuBarSpec(
             headline: headline, state: store.state,
             showPercent: settings.showPercentInMenuBar,
-            frame: frames[frameIndex % frames.count])
+            frame: sprite.frame(mood: mood, tick: frameIndex),
+            darkAppearance: darkAppearance)
         guard spec != lastSpec else { return }
         lastSpec = spec
         button.image = MenuBarImageBuilder.image(for: spec)
         button.attributedTitle = NSAttributedString(string: "")
     }
 
+    /// One sentence for the status item's toolTip AND accessibility label —
+    /// the app's front door must not be mute (hover explains "!"/"--";
+    /// VoiceOver gets the headline and reset without opening anything).
+    public static func statusDescription(headline: QuotaLimit?, state: QuotaStore.State,
+                                         now: Date = Date()) -> String {
+        switch state {
+        case .credentialsMissing:
+            return "AI Limit Bar — sign in to Claude Code to see quota"
+        case .tokenExpired:
+            return "AI Limit Bar — token expired, use Claude Code once to renew"
+        case .loading:
+            return "AI Limit Bar — loading quota"
+        case .ready, .offline:
+            guard let headline else { return "AI Limit Bar — no quota data" }
+            let reset: String
+            switch headline.kind {
+            case .session:
+                reset = ResetFormatter.spokenSessionCountdown(until: headline.resetsAt, from: now)
+            case .weeklyAll, .weeklyModel:
+                reset = ResetFormatter.spokenWeeklyReset(headline.resetsAt)
+            }
+            var text = "\(LimitRowView.kindLabel(headline.kind).capitalized) "
+                + "\(Int(headline.percentUsed))% used — \(reset)"
+            if case .offline = state { text += " (offline)" }
+            return text
+        }
+    }
+
     public static func menuBarTitle(headline: QuotaLimit?, state: QuotaStore.State,
                                     showPercent: Bool) -> String {
         switch state {
-        case .credentialsMissing, .tokenExpired, .loading:
+        case .credentialsMissing, .tokenExpired:
+            // Needs the user (sign in / renew) — distinct from "no data yet".
+            return "!"
+        case .loading:
             return "--"
         case .ready, .offline:
             guard showPercent else { return "" }
@@ -80,7 +131,8 @@ public final class StatusItemController {
 
     public static func menuBarSpec(headline: QuotaLimit?, state: QuotaStore.State,
                                    showPercent: Bool,
-                                   frame: SpriteFrame) -> MenuBarImageBuilder.Spec {
+                                   frame: SpriteFrame,
+                                   darkAppearance: Bool) -> MenuBarImageBuilder.Spec {
         let title = menuBarTitle(headline: headline, state: state, showPercent: showPercent)
         let bar: Double?
         switch state {
@@ -89,13 +141,28 @@ public final class StatusItemController {
         default:
             bar = nil
         }
-        // Menu bar renders white always (user preference); quota severity
-        // colors remain in the popover.
+        // The whole item wears the headline limit's severity color
+        // (DESIGN.md §Menu Bar Item) in the system appearance's variant;
+        // neutral (white on dark, black on light) until data exists, and
+        // Warning Gold when the app needs the user ("!").
+        let neutral: NSColor = darkAppearance ? .white : .black
+        let color: NSColor
+        switch state {
+        case .ready, .offline:
+            color = headline.map {
+                RetroTheme.menuBarColor(for: Severity(percent: $0.percentUsed),
+                                        darkAppearance: darkAppearance)
+            } ?? neutral
+        case .credentialsMissing, .tokenExpired:
+            color = RetroTheme.menuBarColor(for: .warn, darkAppearance: darkAppearance)
+        case .loading:
+            color = neutral
+        }
         return MenuBarImageBuilder.Spec(
             frame: frame,
             percentText: title.isEmpty ? nil : title,
             barFraction: bar,
-            color: .white)
+            color: color)
     }
 
     @objc private func handleClick() {
@@ -108,6 +175,9 @@ public final class StatusItemController {
         if popover.isShown {
             popover.performClose(nil)
         } else {
+            // Every open answers the Claude glance; the Gemini tab is only a
+            // within-presentation peek while it remains a placeholder.
+            settings.selectedTab = .claude
             Task { await store.refreshIfStale(olderThan: 10) }
             activityStore.refreshIfStale()
             // NSStatusBarButton is a flipped view: .maxY is the visual bottom,

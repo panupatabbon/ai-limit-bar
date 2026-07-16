@@ -1,6 +1,6 @@
 import Foundation
 
-public enum LimitKind: Equatable, Sendable {
+public enum LimitKind: Hashable, Sendable {
     case session
     case weeklyAll
     case weeklyModel(String) // model display name, e.g. "Fable"

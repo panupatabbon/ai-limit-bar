@@ -14,7 +14,9 @@ public final class AppSettings {
     public var showWeeklyAll: Bool { didSet { defaults.set(showWeeklyAll, forKey: "showWeeklyAll") } }
     public var showWeeklyModels: Bool { didSet { defaults.set(showWeeklyModels, forKey: "showWeeklyModels") } }
     public var compactRows: Bool { didSet { defaults.set(compactRows, forKey: "compactRows") } }
-    public var selectedTab: ProviderTab { didSet { defaults.set(selectedTab.rawValue, forKey: "selectedTab") } }
+    /// Deliberately not persisted while Gemini is a placeholder: every open
+    /// must land on Claude so the primary glance never hits a dead end.
+    public var selectedTab: ProviderTab = .claude
 
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -24,7 +26,6 @@ public final class AppSettings {
         showWeeklyAll = defaults.object(forKey: "showWeeklyAll") as? Bool ?? true
         showWeeklyModels = defaults.object(forKey: "showWeeklyModels") as? Bool ?? true
         compactRows = defaults.object(forKey: "compactRows") as? Bool ?? false
-        selectedTab = ProviderTab(rawValue: defaults.string(forKey: "selectedTab") ?? "") ?? .claude
     }
 
     public func isVisible(_ kind: LimitKind) -> Bool {

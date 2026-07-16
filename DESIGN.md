@@ -1,349 +1,203 @@
-# Design System Inspired by Jules
+---
+name: AILimitBar
+description: Retro 8-bit macOS menu bar app showing Claude quota as HP-style pixel bars
+colors:
+  void-purple: "#09051C"
+  dungeon-violet: "#1D0245"
+  pixel-white: "#FFFFFF"
+  neon-magenta: "#FF79C6"
+  coin-cyan: "#00D9FF"
+  warning-gold: "#FFC300"
+  damage-red: "#FF5C5C"
+typography:
+  display:
+    fontFamily: "Press Start 2P, monospace"
+    fontSize: "12pt"
+    fontWeight: 400
+  headline:
+    fontFamily: "Press Start 2P, monospace"
+    fontSize: "9pt"
+    fontWeight: 400
+  title:
+    fontFamily: "Press Start 2P, monospace"
+    fontSize: "8pt"
+    fontWeight: 400
+  label:
+    fontFamily: "Press Start 2P, monospace"
+    fontSize: "7pt"
+    fontWeight: 400
+  caption:
+    fontFamily: "Press Start 2P, monospace"
+    fontSize: "6pt"
+    fontWeight: 400
+  body:
+    fontFamily: "SF Mono, ui-monospace, monospace"
+    fontSize: "10pt"
+    fontWeight: 400
+rounded:
+  none: "0pt"
+spacing:
+  micro: "2pt"
+  xs: "4pt"
+  sm: "8pt"
+  md: "12pt"
+  lg: "16pt"
+  xl: "20pt"
+components:
+  tab-active:
+    backgroundColor: "{colors.coin-cyan}"
+    textColor: "{colors.void-purple}"
+    typography: "{typography.title}"
+    rounded: "{rounded.none}"
+    padding: "6pt 10pt"
+  tab-inactive:
+    backgroundColor: "{colors.dungeon-violet}"
+    textColor: "#FFFFFFB3"
+    typography: "{typography.title}"
+    rounded: "{rounded.none}"
+    padding: "6pt 10pt"
+  progress-segment:
+    backgroundColor: "{colors.coin-cyan}"
+    rounded: "{rounded.none}"
+    size: "10pt"
+  state-title:
+    textColor: "{colors.neon-magenta}"
+    typography: "{typography.display}"
+  footer-action:
+    textColor: "#FFFFFFB3"
+    typography: "{typography.label}"
+    rounded: "{rounded.none}"
+---
 
-## 1. Visual Theme & Atmosphere
+# Design System: AILimitBar
 
-Jules embraces a **dark, tech-forward aesthetic** with a distinctly cyberpunk energy. The design system features deep purples and blacks as foundational surfaces, punctuated by bold neon magenta accents that command attention and convey innovation. The monospace typography reinforces the coding-agent identity, while minimalist layouts and generous whitespace create breathing room within the dark environment. The overall atmosphere is futuristic yet approachable—a sophisticated AI assistant that feels powerful without being intimidating. Dotted borders and geometric precision suggest algorithmic precision and autonomous intelligence.
+## 1. Overview
 
-**Key Characteristics**
-- Deep purple-black color foundation (`#09051C`, `#1D0245`)
-- Vibrant neon magenta highlights (`#FF79C6`) for primary interactions
-- Monospace typography throughout for technical authenticity
-- High contrast for accessibility and impact
-- Minimal geometric ornamentation (dotted borders, sharp edges)
-- Clean, spacious layouts with intentional negative space
-- Cyan/teal accent for secondary interactions (inferred from UI patterns)
+**Creative North Star: "The Party Status Screen"**
 
-## 2. Color Palette & Roles
+AILimitBar renders Claude quota the way a JRPG renders its party: HP bars, exact numbers, and a mascot sprite, all readable in a single glance from a pause-menu-dark screen. The system is a native SwiftUI translation of the Jules cyberpunk palette — deep purple-black surfaces, neon magenta as the brand voice, cyan as the working accent — worn as a game skin over an instrument core. Every value on screen is literal: percentages, reset countdowns, and severity states are never abstracted into decoration.
+
+The register is product. The popover is 298pt wide (derived from the HP bar's pixel grid), the settings window 340pt; there is no responsive web layout, no hover choreography, no scroll. Density is deliberate: one glance answers "how much HP is left," a second glance answers "which limit and when does it reset." The system explicitly rejects the SaaS analytics dashboard — no white cards, no metric tiles, no charts-for-the-sake-of-charts. Quota is a status screen, not a report. It equally rejects retro-at-the-cost-of-legibility: the pixel font is reserved for short uppercase labels; anything sentence-length switches to SF Mono.
+
+**Key Characteristics:**
+- Dark-only, dual-surface world: Void Purple base with Dungeon Violet panels
+- Pixel type (Press Start 2P) for labels, SF Mono for prose — never the reverse
+- Severity speaks in exactly three colors: Coin Cyan → Warning Gold → Damage Red
+- 100% flat: depth is a surface-color change or a 1px stroke, never a shadow
+- Sharp corners everywhere; the grid is the ornament
+- Motion is a heartbeat, not a show: 0.3s sprite ticks, paused in Low Power Mode
+
+## 2. Colors
+
+A committed dark palette where the surfaces are the night and four saturated voices do all the talking.
 
 ### Primary
-- **Brand Magenta** (`#FF79C6`): Primary call-to-action buttons, accent highlights, attention-drawing UI elements, and interactive states
-- **Deep Purple Night** (`#09051C`): Primary background for dark mode dominance and deep surface foundation
+- **Neon Magenta** (`#FF79C6`): The brand's voice. Section headers ("QUOTA", "ACTIVITY 24H"), state-screen titles ("INSERT COIN", "TOKEN EXPIRED"), and the ◀ active-limit marker. It marks *where the app speaks*, never how bad things are.
+- **Coin Cyan** (`#00D9FF`): The working accent. Active tab fill, plan-name header, activity group titles, settings tint — and doubles as the `ok` severity color (usage below 60%).
 
-### Accent Colors
-- **Dark Violet** (`#1D0245`): Secondary background layer, subtle depth distinction
-- **Cyan Teal** (`#00D9FF`): Secondary interactive elements, plan navigation buttons, link underlines (inferred from UI)
+### Secondary
+- **Warning Gold** (`#FFC300`): Severity `warn` (usage 60–84%) and the OFFLINE badge. Appears only when the user should start paying attention.
+- **Damage Red** (`#FF5C5C`): Severity `critical` (usage 85%+). The only red in the system; when it shows, a limit is nearly spent.
 
-### Interactive
-- **Magenta Button** (`#FF79C6`): Primary CTA background and active states
-- **Cyan Border** (`#00D9FF`): Outlined button borders, secondary navigation highlights
-- **Magenta-Purple Active** (`#C449A0`): Hover and pressed states (derived from magenta with darkened tone)
+### Neutral
+- **Void Purple** (`#09051C`): The base background of every surface — popover, settings window, menu bar image canvas. Also the text color on Coin Cyan fills (active tab).
+- **Dungeon Violet** (`#1D0245`): The panel layer — empty progress-bar segments, inactive tab fills. One step up from the void; the only "elevation" the system has.
+- **Pixel White** (`#FFFFFF`): All text, at stepped opacities that form the de facto text ramp: 100% primary labels, 70–80% secondary text and footer actions, 60% timestamps, 50% empty states, 40% bar borders, 20% divider rules.
 
-### Neutral Scale
-- **Pure Black** (`#000000`): Text content, code backgrounds, hard shadows, maximum contrast
-- **Pure White** (`#FFFFFF`): Primary text on dark backgrounds, code comments, high-contrast labels
+### Named Rules
+**The Magenta-Is-Brand Rule.** Neon Magenta never encodes severity or data. It is prohibited on bars, percentages, and warnings; it belongs to headers, state titles, and brand marks only. Severity speaks exclusively through the Cyan → Gold → Red trio.
 
-### Surface & Borders
-- **Deep Night** (`#09051C`): Main surface and container backgrounds
-- **Violet Layer** (`#1D0245`): Nested containers, code editor backgrounds
-- **Cyan Border** (`#00D9FF`): Decorative dotted borders, accent frames
+**The Severity Trio Rule.** `Severity(percent:)` is the single source of truth: below 60% is Coin Cyan, 60–84% is Warning Gold, 85%+ is Damage Red. Any UI that shows quota state derives its color from this function — never hand-picked.
 
-## 3. Typography Rules
+**The White-Opacity Ramp Rule.** There are no gray hex values. Secondary text is Pixel White at reduced opacity (0.8 / 0.7 / 0.6 / 0.5), so every "gray" stays tinted by the purple ground beneath it.
 
-### Font Family
-**Primary:** `Roboto Mono Variable` with fallback `monospace`
-**Secondary:** `ui-monospace`, then `'Courier New'`, then `monospace`
+## 3. Typography
 
-All typography uses monospace for consistency with coding-agent identity.
+**Display Font:** Press Start 2P (bundled TTF, fallback: bold monospaced system font)
+**Body Font:** SF Mono via `.system(design: .monospaced)` (fallback: ui-monospace)
+
+**Character:** A hard pairing on one axis — bitmap pixel type for the game skin, a clean system mono for the instrument core. Both are monospace, so numbers align; only one is allowed to carry a full sentence.
 
 ### Hierarchy
+- **Display** (Press Start 2P, 12pt): State-screen titles — "LOADING", "INSERT COIN", "TOKEN EXPIRED", "NO DATA", "INSERT CARTRIDGE". The loudest voice in the app; one per screen at most.
+- **Headline** (Press Start 2P, 9pt): The plan name at the top of the popover ("CLAUDE MAX").
+- **Title** (Press Start 2P, 8pt): Limit-row labels ("SESSION", "WEEKLY TOTAL"), percent values, and provider tabs.
+- **Label** (Press Start 2P, 7pt): Section headers, footer actions ("⚙ SETTINGS", "⏻ QUIT"), activity percentages, menu bar percent text, OFFLINE badge.
+- **Caption** (Press Start 2P, 6pt): Reset labels ("RESET 2H 15M") and the UPDATED timestamp. The floor — nothing renders smaller.
+- **Body** (SF Mono `.caption`, ~10pt): Hints, error guidance, activity item names — any string longer than a label. Sentence case, never all-caps.
 
-| Role | Font | Size | Weight | Line Height | Letter Spacing | Notes |
-|------|------|------|--------|-------------|-----------------|-------|
-| Display / H1 | Roboto Mono Variable | 15px | 400 | 22.5px | 0 | Hero headline, agent title |
-| Heading | Roboto Mono Variable | 18px | 400 | 28px | 0 | Large section headers, body intro text |
-| Body / Paragraph | Roboto Mono Variable | 15px | 400 | 22.5px | 0 | Standard content, descriptions |
-| Body Emphasis | Roboto Mono Variable | 15px | 500 | 22.5px | 0 | List items, emphasis content |
-| Link / Button Text | Roboto Mono Variable | 15px | 700 | 22.5px | 0 | Interactive text, CTA labels, navigation |
-| Code / Block | ui-monospace | 14px | 400 | 24px | 0 | Code samples, syntax highlighting |
-| Caption | Roboto Mono Variable | 12px | 400 | 18px | 0 | Small labels, timestamps (inferred) |
+### Named Rules
+**The Half-Cell Tracking Rule.** All Press Start 2P text carries letter-spacing of half a pixel cell (6.25% of point size — 0.5pt at 8pt) via `pixelType(size:)` in SwiftUI and a matching `.kern` in the menu bar image. Grid-true steps only; never arbitrary em values.
 
-### Principles
-- **Monospace consistency:** All text uses monospace fonts to reinforce the coding-agent identity and create visual cohesion
-- **Weight for emphasis:** Font weight (`500`, `700`) distinguishes interactive and emphasized content rather than size changes
-- **Tight leading:** Line heights match or slightly exceed font size for readability in dark mode
-- **No letter spacing variation:** Maintains technical aesthetic without artificial spacing
-- **Scale restraint:** Limited size range (12–18px) keeps hierarchy clear and focused
+**The Pixel-For-Labels Rule.** Press Start 2P is prohibited on any string longer than ~3 words or any sentence with punctuation. Short uppercase labels only; the moment text must be *read* rather than *recognized*, it becomes SF Mono.
 
-## 4. Component Stylings
+**The All-Caps Contract.** Everything set in Press Start 2P is uppercase. Everything set in SF Mono is sentence case. Mixing the two conventions in one element is a bug.
 
-### Buttons
+## 4. Elevation
 
-**Primary Button**
-- Background: `#FF79C6`
-- Text Color: `#FFFFFF`
-- Padding: `8px 16px`
-- Border Radius: `0px`
-- Border: `0px solid transparent`
-- Font Size: `15px`
-- Font Weight: `700`
-- Font Family: `Roboto Mono Variable`
-- Height: `38.5px`
-- Line Height: `22.5px`
-- Hover State: Background `#C449A0` (darken by ~20%)
-- Active State: Background `#A83880`
-- Transition: `background-color 200ms ease`
+**The Flat Cartridge Rule.** This system has no shadows — not on cards, not on popovers, not on focus states. It is flat by doctrine, not by omission: 8-bit hardware never rendered a drop shadow, and neither does this app. Depth is conveyed exactly two ways: a surface-color step (Void Purple → Dungeon Violet) and a 1px stroke (Pixel White at 40% for bar frames, 20% for divider rules). If a new element seems to need a shadow, it actually needs a surface change or a border.
 
-**Secondary Button (Outlined)**
-- Background: `rgba(0, 0, 0, 0)` (transparent)
-- Text Color: `#00D9FF`
-- Padding: `2px 10px 2px 4px`
-- Border Radius: `0px`
-- Border: `4px solid #00D9FF`
-- Font Size: `15px`
-- Font Weight: `700`
-- Font Family: `Roboto Mono Variable`
-- Height: `36px`
-- Box Shadow: `none`
-- Hover State: Background `rgba(0, 217, 255, 0.1)`, Border `4px solid #00FFFF`
-- Active State: Background `rgba(0, 217, 255, 0.2)`
+## 5. Components
 
-**Ghost Button / Link Button**
-- Background: `rgba(0, 0, 0, 0)` (transparent)
-- Text Color: `#B88CC8`
-- Padding: `0px 0px`
-- Border Radius: `0px`
-- Border: `0px solid transparent`
-- Font Size: `15px`
-- Font Weight: `500`
-- Font Family: `Roboto Mono Variable`
-- Height: `auto`
-- Line Height: `22.5px`
-- Hover State: Text Color `#FF79C6`, Text Decoration `underline`
-- Active State: Text Color `#C449A0`
+All components share the "refined retro" temperament: pixel-perfect geometry and game vocabulary, executed with restraint — exact alignment, stepped opacities, no noise. Every plain-style button carries `pixelFocusRing()`: a 1px Pixel White 70% rectangle on keyboard focus — the flat-language replacement for the system glow.
 
-### Cards & Containers
+### Provider Tabs
+- **Shape:** Sharp rectangles (0pt radius), 6pt vertical / 10pt horizontal padding
+- **Active:** Coin Cyan fill with Void Purple text — the strongest inversion in the app
+- **Inactive:** Dungeon Violet fill with Pixel White at 70%
+- **Type:** Title (Press Start 2P 8pt), uppercase
 
-**Code Editor Card**
-- Background: `#1D0245`
-- Border: `2px dotted #00D9FF`
-- Border Radius: `0px`
-- Padding: `24px`
-- Box Shadow: `0px 8px 32px rgba(255, 121, 198, 0.15)`
-- Text Color: `#FFFFFF`
-- Min Height: `280px`
+### Pixel Progress Bar (signature)
+- **Structure:** Exactly 12 segments, each 20×10pt, 2pt gaps, wrapped in a 1px Pixel White 40% stroke with 2pt inset — 266pt total, the popover's full measure (the popover width derives from this grid: 266 + 32pt padding = 298pt)
+- **Fill:** Severity color from the Severity Trio Rule; empty segments are Dungeon Violet
+- **The Twelve Segment Rule:** any usage above 0% lights at least one segment — a nearly-empty bar never lies about being untouched
+- **Low-HP flash:** at critical severity the leading filled segment pulses (0.8s cycle, dims to 35%) — the JRPG danger blink; suppressed under Reduce Motion and Low Power Mode
+- **Accessibility:** carries a "`N` percent used" label
 
-**Content Container**
-- Background: `#09051C`
-- Border Radius: `0px`
-- Padding: `40px`
-- Margin: `0px`
-- Text Color: `#FFFFFF`
+### Limit Row
+- **Layout:** Label row (kind + percent + optional active marker) over the bar, 4pt gap; reset caption below — hidden in compact mode except for the binding limit, and promoted to 7pt full white from warn upward
+- **Percent color:** severity-derived; kind label stays Pixel White
+- **Active marker:** Neon Magenta "◀ ACTIVE" with tooltip "Currently binding limit"
+- **Accessibility:** each row is one VoiceOver element speaking a full sentence ("Session, 58 percent used, resets in 2 hours 14 minutes, you'll hit this limit first")
 
-**Interactive Task Card**
-- Background: `#FF79C6`
-- Border Radius: `0px`
-- Padding: `12px 16px`
-- Border: `0px solid transparent`
-- Text Color: `#FFFFFF`
-- Font Weight: `700`
-- Font Size: `15px`
-- Hover State: Background `#C449A0`, Box Shadow `0px 4px 12px rgba(255, 121, 198, 0.3)`
-- Cursor: `pointer`
+### State Screens
+- **Structure:** Centered Display title in Neon Magenta over an SF Mono hint at 80% white, 16pt vertical padding
+- **Voice:** Game-flavored titles ("INSERT COIN" for missing credentials), plain-English hints — the skin jokes, the instrument explains
 
-**Yellow Accent Card** (alternate)
-- Background: `#FFC300`
-- Text Color: `#000000`
-- Padding: `12px 16px`
-- Font Weight: `700`
+### Section Headers
+- **Structure:** Label-size Neon Magenta title over a 1px divider (Pixel White 20%), 4pt gap. This is the app's one deliberate "kicker" system, used for exactly two sections: QUOTA and ACTIVITY 24H
 
-### Inputs & Forms
+### Sprite Avatar (signature)
+- **Structure:** 16×16 pixel bitmap rendered on Canvas at 2–3× scale, single-color fill
+- **Color:** In the popover header and menu bar, the sprite wears the headline limit's severity color — the mascot *is* the status indicator
+- **Mood:** the mascot's body language follows severity — **calm** (ok/no data: rests on base, blinks one tick in ten), **wary** (warn: walks the 4-step loop at half speed), **agitated** (critical: paces base/alt every tick, no time to blink)
+- **Motion:** frame tick every 0.3s in the popover, 1s in the menu bar; all variants hold the resting frame under Low Power Mode and Reduce Motion
 
-**Text Input**
-- Background: `#1D0245`
-- Text Color: `#FFFFFF`
-- Border: `2px solid #00D9FF`
-- Border Radius: `0px`
-- Padding: `12px 16px`
-- Font Size: `14px`
-- Font Family: `ui-monospace`
-- Line Height: `24px`
-- Placeholder Color: `rgba(255, 255, 255, 0.5)`
-- Focus State: Border `2px solid #FF79C6`, Box Shadow `0px 0px 12px rgba(255, 121, 198, 0.2)`
+### Menu Bar Item
+- **Composition:** One pre-rendered NSImage, 18pt tall: 16pt sprite + 3pt gap + right block (7pt pixel percent text above a 14×3pt mini bar at 25% track opacity)
+- **Everything monochrome** in the severity color, so the whole item reads as a single instrument light
+- **Text states:** "--" means no data yet (loading, neutral color); "!" means the app needs the user (sign in / renew token) and wears Warning Gold — the two must never share a glyph or a color
+- **System-appearance aware:** the menu bar sits on the *system's* surface, not the app's dark-only one. Dark menu bar wears the palette trio unchanged; light menu bar wears darker same-hue variants (`#0E7490` / `#B45309` / `#DC2626`, all ≥4.5:1 on the light bar); the no-data neutral flips white ↔ black. The popover itself never changes — dark-only stays doctrine
 
-**Textarea**
-- Background: `#1D0245`
-- Text Color: `#FFFFFF`
-- Border: `2px solid #00D9FF`
-- Border Radius: `0px`
-- Padding: `16px`
-- Font Size: `14px`
-- Font Family: `ui-monospace`
-- Line Height: `24px`
-- Min Height: `120px`
-- Resize: `vertical`
+### Settings Form
+- **Structure:** Native SwiftUI toggles and pickers tinted Coin Cyan on Void Purple, grouped under Label-size Neon Magenta section headers (same 1px-divider kicker as the popover), 20pt padding, 340pt wide; control labels in SF Mono per the typography contract
+- **Window pinned dark:** the settings window forces dark appearance with a transparent Void Purple title bar, so native control chrome never renders light-theme variants onto the dark surface
+- **Native controls are kept native** — no custom-drawn checkboxes; the retro skin stops where macOS affordances begin
 
-### Navigation
+## 6. Do's and Don'ts
 
-**Top Navigation Bar**
-- Background: `#09051C`
-- Border: `0px`
-- Height: `56px`
-- Padding: `16px 40px`
-- Display: `flex`
-- Align Items: `center`
-- Justify Content: `space-between`
+### Do:
+- **Do** derive every quota color from `Severity(percent:)` — Coin Cyan under 60, Warning Gold 60–84, Damage Red at 85+.
+- **Do** keep Press Start 2P uppercase and under ~3 words; switch to SF Mono the moment text becomes a sentence.
+- **Do** express depth only as Void Purple → Dungeon Violet surface steps or 1px white-opacity strokes.
+- **Do** keep the 12-segment bar geometry (20×10pt cells, 2pt gaps) for any new quota display.
+- **Do** write state-screen titles in game voice and hints in plain English ("INSERT COIN" + "Install and sign in to Claude Code first").
+- **Do** pause all animation under macOS Low Power Mode; the app is a quiet resident.
 
-**Navigation Link (Active)**
-- Text Color: `#FFFFFF`
-- Text Decoration: `none`
-- Font Weight: `700`
-- Font Size: `15px`
-- Border Bottom: `2px solid #FF79C6`
-- Padding Bottom: `8px`
-
-**Navigation Link (Inactive)**
-- Text Color: `#B88CC8`
-- Text Decoration: `none`
-- Font Weight: `500`
-- Font Size: `15px`
-- Hover State: Text Color `#FF79C6`
-
-### Badge / Tag
-
-**Magenta Badge**
-- Background: `#FF79C6`
-- Text Color: `#000000`
-- Padding: `8px 12px`
-- Border Radius: `0px`
-- Font Size: `15px`
-- Font Weight: `700`
-- Display: `inline-block`
-
-**Cyan Badge**
-- Background: `#00D9FF`
-- Text Color: `#000000`
-- Padding: `8px 12px`
-- Border Radius: `0px`
-- Font Size: `15px`
-- Font Weight: `700`
-
-## 5. Layout Principles
-
-### Spacing System
-**Base Unit:** `8px`
-
-**Scale:**
-- `8px` — Extra tight spacing (between inline elements, micro padding)
-- `12px` — Tight spacing (form input padding, small gaps)
-- `16px` — Standard padding (button padding, card internal spacing)
-- `24px` — Medium spacing (section internal padding, card padding)
-- `32px` — Large spacing (between major sections)
-- `40px` — Extra large spacing (container padding, horizontal gutters)
-- `48px` — Section margin (between logical sections)
-- `56px` — Large section margin (full-screen section separation)
-- `80px` — Maximum margin (hero sections, primary separation)
-
-**Usage Context:**
-- Component internal padding: `12px–24px`
-- Container padding: `40px`
-- Section margins: `48px–80px`
-- Gap between grid items: `32px–40px`
-
-### Grid & Container
-- **Max Width:** `1200px` (inferred from responsive layout)
-- **Container Padding:** `40px` left and right
-- **Column Strategy:** 12-column grid for flexible layouts, but uses full-width sections for hero and code displays
-- **Section Patterns:** Hero section (full width), content container (centered, max-width), sidebar layouts (content + action panel)
-
-### Whitespace Philosophy
-The design prioritizes generous whitespace to prevent visual clutter in the dark environment. Spacing between elements emphasizes hierarchy and allows the eye to rest. Major sections are separated by significant vertical margins (`48px–80px`) to create distinct zones. Internal card spacing maintains breathing room around text and interactive elements.
-
-### Border Radius Scale
-- **Sharp (0px):** All buttons, cards, containers, and inputs use sharp 90-degree corners to reinforce the technical, cyberpunk aesthetic
-- **No rounded corners** — Consistent use of `0px` throughout maintains geometric precision and aligns with monospace typography
-
-## 6. Depth & Elevation
-
-| Level | Treatment | Use |
-|-------|-----------|-----|
-| Flat / Base | No shadow | Backgrounds, containers, body text |
-| Raised / L1 | `0px 4px 12px rgba(255, 121, 198, 0.15)` | Cards, input focus states, interactive elements |
-| Elevated / L2 | `0px 8px 32px rgba(255, 121, 198, 0.15)` | Code editor card, modal windows, navigation overlays |
-| Floating / L3 | `0px 16px 48px rgba(255, 121, 198, 0.2)` | Dropdowns, popovers, floating action elements |
-| Maximum / L4 | `0px 24px 64px rgba(0, 0, 0, 0.4)` | Modal backdrop, full-screen overlays |
-
-**Shadow Philosophy:**
-Shadows use magenta tint (`rgba(255, 121, 198, ...)`) to reinforce brand identity and create depth in dark mode. Shadows are subtle and rarely exceed 20% opacity to maintain the dark atmosphere. The elevation system is restrained—most UI elements live at flat or raised levels. Shadows primarily indicate interactive layering and hover states rather than static hierarchy.
-
-## 7. Do's and Don'ts
-
-### Do
-- **Use magenta (`#FF79C6`) for all primary CTAs** — Buttons, highlights, focus states, and attention-grabbing interactive elements
-- **Maintain monospace typography** — All text should use `Roboto Mono Variable` or `ui-monospace` for consistency and brand identity
-- **Preserve sharp corners** — Keep all border radius at `0px` for a precise, technical aesthetic
-- **Leverage cyan (`#00D9FF`) for secondary actions** — Outlined buttons, decorative borders, and secondary navigation
-- **Honor contrast ratios** — Ensure white text on dark backgrounds and magenta on dark backgrounds meet WCAG AA standards
-- **Use generous spacing** — Apply `24px–40px` padding to containers and `48px–80px` margins between sections
-- **Apply subtle shadows** — Keep shadows below 20% opacity and use magenta tint for brand consistency
-- **Keep layouts grid-based** — Maintain alignment to a 12-column grid or full-width blocks for predictability
-
-### Don't
-- **Avoid rounded corners** — Never use border-radius values other than `0px`; the design is explicitly angular
-- **Don't use gradients** — Maintain solid color fills; no gradient overlays or transitions
-- **Avoid unnecessary colors** — Stick to the core palette (`#09051C`, `#1D0245`, `#FF79C6`, `#00D9FF`, `#FFFFFF`, `#000000`)
-- **Don't mix serif fonts** — All typography is monospace; never introduce serif or sans-serif typefaces
-- **Avoid light backgrounds** — The design is dark-mode only; do not apply light surface colors
-- **Don't use thick borders** — Borders should be `2px–4px` maximum; heavy strokes conflict with the minimal aesthetic
-- **Avoid very large shadows** — Keep box-shadow blur radius under `48px` and spread under `4px`
-- **Don't center content excessively** — Use left-aligned or grid-based layouts for readability; center only for hero sections
-
-## 8. Responsive Behavior
-
-### Breakpoints
-
-| Name | Width | Key Changes |
-|------|-------|-------------|
-| Mobile | 320px–767px | Single column, full-width containers, reduced padding (`24px`), stack cards vertically, hide secondary navigation |
-| Tablet | 768px–1023px | 2-column layouts, moderate padding (`32px`), reduce font sizes by 1–2px, collapse sidebars |
-| Desktop | 1024px–1279px | 3-column grid, full padding (`40px`), standard font sizes, side-by-side card layouts |
-| Large | 1280px+ | Max-width containers, hero sections use full-bleed backgrounds, 12-column grid, generous margins (`80px`) |
-
-### Touch Targets
-- **Minimum size:** `36px × 36px` for all interactive elements (buttons, links, input fields)
-- **Recommended size:** `44px × 44px` for primary CTAs and frequently used controls
-- **Spacing between targets:** Minimum `8px` between adjacent interactive elements
-- **Link padding:** Outlined buttons should maintain `2px 10px` internal spacing for comfortable tap zones
-
-### Collapsing Strategy
-- **Containers:** Reduce max-width and padding as viewport shrinks; at mobile (< 768px), use full width with `24px` side padding
-- **Navigation:** Convert horizontal navigation to hamburger menu on tablets (< 1024px); show full nav only on desktop
-- **Code cards:** Stack code blocks vertically on mobile; allow horizontal scroll on desktop for long lines
-- **Button groups:** Break into vertical stacks on mobile; arrange horizontally on tablet and above
-- **Typography:** Maintain 15px base font size down to tablet; reduce to 13px on mobile to fit more content
-- **Spacing:** Reduce margins and padding by 25% on mobile, 12% on tablet; use full scale on desktop
-
-## 9. Agent Prompt Guide
-
-### Quick Color Reference
-- **Primary CTA Button:** Brand Magenta (`#FF79C6`) background, white text
-- **Secondary CTA Button:** Cyan Teal (`#00D9FF`) border, transparent background, cyan text
-- **Background (Primary):** Deep Purple Night (`#09051C`)
-- **Background (Secondary):** Dark Violet (`#1D0245`)
-- **Text (Primary):** Pure White (`#FFFFFF`)
-- **Text (Secondary):** Light Purple (`#B88CC8`, inferred)
-- **Text (Code):** Pure White (`#FFFFFF`) on dark background
-- **Accent / Highlight:** Neon Magenta (`#FF79C6`)
-- **Secondary Accent:** Cyan (`#00D9FF`)
-- **Border / Frame:** Cyan Teal (`#00D9FF`) for dotted borders
-
-### Iteration Guide
-
-1. **All text uses monospace:** Default to `Roboto Mono Variable` for all typography; use `ui-monospace` only for code blocks. No serif or sans-serif fonts.
-
-2. **Sharp corners everywhere:** Set all `border-radius` to `0px`. The design is explicitly angular; never round corners.
-
-3. **Magenta for primary interactions:** Use `#FF79C6` for primary buttons, focus states, and highlighted elements. Hover state darkens to `#C449A0` (~20% darker).
-
-4. **Cyan for secondary interactivity:** Use `#00D9FF` for outlined buttons, decorative borders, and secondary navigation; reserve magenta for primary actions.
-
-5. **Dark backgrounds only:** Containers and surfaces use either `#09051C` (primary) or `#1D0245` (secondary). Never use light backgrounds; this is a dark-mode-only design.
-
-6. **Subtle, magenta-tinted shadows:** Apply shadows only to elevated elements (cards, modals, focused inputs). Use `rgba(255, 121, 198, ...)` with opacity under 20%; keep blur radius under 48px.
-
-7. **Spacing follows 8px grid:** Use multiples of 8px for all spacing (margins, padding, gaps). Common values: `12px`, `16px`, `24px`, `32px`, `40px`, `48px`, `80px`.
-
-8. **Weight conveys hierarchy:** Use `400` for body text, `500` for emphasis, `700` for interactive/heading text. Rarely change font size; use weight instead.
-
-9. **Minimum interactive size is 36px:** All buttons, links, and inputs must be at least `36px` tall or wide. Preferred is `44px` for frequently used controls.
-
-10. **Focus and hover states are required:** Every interactive element must have a distinct `:hover` and `:focus` state using magenta highlight or opacity increase; provide tactile feedback.
+### Don't:
+- **Don't** build anything that reads as a *SaaS analytics dashboard* — no white cards, no metric tiles, no hero-number-with-sparkline layouts (PRODUCT.md anti-reference, verbatim).
+- **Don't** let retro cost legibility: never set hints, errors, or activity names in the pixel font, and never render Press Start 2P below 6pt.
+- **Don't** use Neon Magenta for severity, data, or bars — it is brand voice only (The Magenta-Is-Brand Rule).
+- **Don't** add shadows, glows, or blurs anywhere; the system is flat by doctrine (The Flat Cartridge Rule).
+- **Don't** introduce rounded corners, gradients, or gray hex values — corners are 0pt, fills are solid, "gray" is white at reduced opacity.
+- **Don't** replace native macOS form controls with custom-drawn retro widgets; the skin never reinvents standard affordances.

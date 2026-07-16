@@ -10,7 +10,6 @@ final class SpriteTests: XCTestCase {
             let sprite = SpriteLibrary.sprite(forProvider: id)
             XCTAssertEqual(sprite.id, id)
             XCTAssertEqual(sprite.frames.count, 4)
-            XCTAssertEqual(sprite.menuBarFrames.count, 2)
             for (i, frame) in sprite.frames.enumerated() {
                 XCTAssertEqual(frame.bitmap.count, 16, "\(id) frame \(i)")
                 for row in frame.bitmap { XCTAssertEqual(row.count, 16, "\(id) frame \(i)") }
@@ -27,6 +26,34 @@ final class SpriteTests: XCTestCase {
             let diff = zip(a, b).filter { $0 != $1 }.count
             XCTAssertGreaterThanOrEqual(diff, 8, "\(id) idle motion too subtle: \(diff) px")
         }
+    }
+
+    func testMoodFromSeverity() {
+        XCTAssertEqual(SpriteMood(severity: nil), .calm)
+        XCTAssertEqual(SpriteMood(severity: .ok), .calm)
+        XCTAssertEqual(SpriteMood(severity: .warn), .wary)
+        XCTAssertEqual(SpriteMood(severity: .critical), .agitated)
+    }
+
+    func testMoodFrames() {
+        let s = SpriteLibrary.sprite(forProvider: "claude")
+
+        // calm rests on base and blinks one tick in ten.
+        XCTAssertEqual(s.frame(mood: .calm, tick: 0), s.frames[0])
+        XCTAssertEqual(s.frame(mood: .calm, tick: 5), s.frames[0])
+        XCTAssertEqual(s.frame(mood: .calm, tick: 9), s.frames[3])
+        XCTAssertEqual(s.frame(mood: .calm, tick: 19), s.frames[3])
+
+        // wary walks the 4-step loop at half speed.
+        XCTAssertEqual(s.frame(mood: .wary, tick: 0), s.frames[0])
+        XCTAssertEqual(s.frame(mood: .wary, tick: 2), s.frames[1])
+        XCTAssertEqual(s.frame(mood: .wary, tick: 4), s.frames[2])
+        XCTAssertEqual(s.frame(mood: .wary, tick: 6), s.frames[3])
+
+        // agitated paces base/alt every tick — no time to blink at low HP.
+        XCTAssertEqual(s.frame(mood: .agitated, tick: 0), s.frames[0])
+        XCTAssertEqual(s.frame(mood: .agitated, tick: 1), s.frames[1])
+        XCTAssertEqual(s.frame(mood: .agitated, tick: 2), s.frames[0])
     }
 
     func testUnknownProviderFallsBackToClaude() {

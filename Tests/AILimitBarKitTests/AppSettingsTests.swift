@@ -36,11 +36,13 @@ final class AppSettingsTests: XCTestCase {
         XCTAssertTrue(s2.compactRows)
     }
 
-    func testSelectedTabDefaultsAndPersists() {
+    func testSelectedTabDefaultsToClaudeAndDoesNotPersist() {
         let s1 = AppSettings(defaults: defaults)
         XCTAssertEqual(s1.selectedTab, .claude)
+        // While Gemini is a placeholder the tab must never survive a relaunch:
+        // reopening onto the coming-soon screen breaks the primary glance.
         s1.selectedTab = .gemini
-        XCTAssertEqual(AppSettings(defaults: defaults).selectedTab, .gemini)
+        XCTAssertEqual(AppSettings(defaults: defaults).selectedTab, .claude)
     }
 
     func testVisibility() {

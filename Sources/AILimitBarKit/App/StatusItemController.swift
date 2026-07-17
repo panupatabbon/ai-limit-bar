@@ -3,18 +3,18 @@ import SwiftUI
 
 @MainActor
 public final class StatusItemController {
-    private let store: QuotaStore
+    private let hub: ProviderHub
     private let settings: AppSettings
     private let activityStore: ActivityStore
     private var statusItem: NSStatusItem?
     private var popover: NSPopover?
     private var tickTimer: Timer?
     private var frameIndex = 0
-    private var lastSpec: MenuBarImageBuilder.Spec?
+    private var lastSpecs: [MenuBarImageBuilder.Spec]?
     private lazy var settingsWindow = SettingsWindowController(settings: settings)
 
-    public init(store: QuotaStore, settings: AppSettings, activity: ActivityStore) {
-        self.store = store
+    public init(hub: ProviderHub, settings: AppSettings, activity: ActivityStore) {
+        self.hub = hub
         self.settings = settings
         self.activityStore = activity
     }
@@ -28,8 +28,10 @@ public final class StatusItemController {
 
         let popover = NSPopover()
         popover.behavior = .transient
+        // Task 7 replaces this with hub:
         popover.contentViewController = NSHostingController(
-            rootView: QuotaPopoverView(store: store, settings: settings,
+            rootView: QuotaPopoverView(store: hub.store(for: .claude) ?? QuotaStore(provider: ClaudeProvider()),
+                                       settings: settings,
                                        activity: activityStore) { [weak self] in
                 self?.popover?.performClose(nil)
                 self?.settingsWindow.show()
@@ -52,38 +54,57 @@ public final class StatusItemController {
         if !ProcessInfo.processInfo.isLowPowerModeEnabled {
             frameIndex += 1
         }
+        hub.sync(enabled: settings.enabledProviders)
         render()
     }
 
     private func render() {
         guard let button = statusItem?.button else { return }
-        let headline = store.headlineLimit(pin: settings.headlinePin)
-        // Before the spec gate: the countdown in the description keeps moving
-        // even while the rendered image stays identical.
-        let description = Self.statusDescription(headline: headline, state: store.state)
-        button.toolTip = description
-        button.setAccessibilityLabel(description)
-        let sprite = SpriteLibrary.sprite(forProvider: "claude")
-        // The mascot's body language follows the headline severity: calm at
-        // rest (occasional blink), pacing when a limit runs hot.
-        let mood: SpriteMood
-        switch store.state {
-        case .ready, .offline:
-            mood = SpriteMood(severity: headline.map { Severity(percent: $0.percentUsed) })
-        default:
-            mood = .calm
-        }
         let darkAppearance = button.effectiveAppearance
             .bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-        let spec = Self.menuBarSpec(
-            headline: headline, state: store.state,
-            showPercent: settings.showPercentInMenuBar,
-            frame: sprite.frame(mood: mood, tick: frameIndex),
-            darkAppearance: darkAppearance)
-        guard spec != lastSpec else { return }
-        lastSpec = spec
-        button.image = MenuBarImageBuilder.image(for: spec)
+
+        let describedID = Self.openTab(hottest: hub.hottest(pin: settings.headlinePin),
+                                       enabled: hub.orderedLive)
+        if let store = hub.store(for: describedID) {
+            let base = Self.statusDescription(
+                headline: store.headlineLimit(pin: settings.headlinePin), state: store.state)
+            let description = Self.prefixedStatusDescription(
+                name: ProviderCatalog.descriptor(for: describedID).displayName,
+                multi: hub.orderedEnabled.count > 1, base: base)
+            button.toolTip = description
+            button.setAccessibilityLabel(description)
+        }
+
+        let specs: [MenuBarImageBuilder.Spec] = hub.orderedLive.compactMap { id in
+            guard let store = hub.store(for: id) else { return nil }
+            let headline = store.headlineLimit(pin: settings.headlinePin)
+            let sprite = SpriteLibrary.sprite(forProvider: id.rawValue)
+            // The mascot's body language follows the headline severity: calm at
+            // rest (occasional blink), pacing when a limit runs hot.
+            let mood: SpriteMood
+            switch store.state {
+            case .ready, .offline:
+                mood = SpriteMood(severity: headline.map { Severity(percent: $0.percentUsed) })
+            default:
+                mood = .calm
+            }
+            return Self.menuBarSpec(headline: headline, state: store.state,
+                                    showPercent: settings.showPercentInMenuBar,
+                                    frame: sprite.frame(mood: mood, tick: frameIndex),
+                                    darkAppearance: darkAppearance)
+        }
+        guard specs != lastSpecs else { return }
+        lastSpecs = specs
+        button.image = MenuBarImageBuilder.image(for: specs)
         button.attributedTitle = NSAttributedString(string: "")
+    }
+
+    public static func openTab(hottest: ProviderID?, enabled: [ProviderID]) -> ProviderID {
+        hottest ?? enabled.first ?? .claude
+    }
+
+    public static func prefixedStatusDescription(name: String, multi: Bool, base: String) -> String {
+        multi ? "\(name): \(base)" : base
     }
 
     /// One sentence for the status item's toolTip AND accessibility label —
@@ -175,10 +196,15 @@ public final class StatusItemController {
         if popover.isShown {
             popover.performClose(nil)
         } else {
-            // Every open answers the Claude glance; the Gemini tab is only a
-            // within-presentation peek while it remains a placeholder.
-            settings.selectedTab = .claude
-            Task { await store.refreshIfStale(olderThan: 10) }
+            // Every open answers the glance of whichever provider needs
+            // attention most; falls back to the first enabled provider.
+            settings.selectedTab = Self.openTab(hottest: hub.hottest(pin: settings.headlinePin),
+                                                enabled: hub.orderedEnabled)
+            for id in hub.orderedLive {
+                if let store = hub.store(for: id) {
+                    Task { await store.refreshIfStale(olderThan: 10) }
+                }
+            }
             activityStore.refreshIfStale()
             // NSStatusBarButton is a flipped view: .maxY is the visual bottom,
             // so the popover hangs below the menu bar instead of hugging its top.

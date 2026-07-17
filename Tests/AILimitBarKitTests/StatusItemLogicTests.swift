@@ -120,4 +120,19 @@ final class StatusItemLogicTests: XCTestCase {
         XCTAssertEqual(RetroTheme.menuBarColor(for: .critical, darkAppearance: true),
                        NSColor(hex: 0xFF5C5C))
     }
+
+    func testOpenTabRule() {
+        XCTAssertEqual(StatusItemController.openTab(hottest: .codex, enabled: [.claude, .codex]), .codex)
+        XCTAssertEqual(StatusItemController.openTab(hottest: nil, enabled: [.claude, .codex]), .claude)
+        XCTAssertEqual(StatusItemController.openTab(hottest: nil, enabled: []), .claude)
+    }
+
+    func testPrefixedStatusDescription() {
+        XCTAssertEqual(
+            StatusItemController.prefixedStatusDescription(name: "Codex", multi: true, base: "Session 58% used"),
+            "Codex: Session 58% used")
+        XCTAssertEqual(
+            StatusItemController.prefixedStatusDescription(name: "Claude", multi: false, base: "Session 58% used"),
+            "Session 58% used")
+    }
 }

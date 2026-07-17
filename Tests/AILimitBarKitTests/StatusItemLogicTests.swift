@@ -32,8 +32,10 @@ final class StatusItemLogicTests: XCTestCase {
             darkAppearance: true)
         XCTAssertEqual(ready.percentText, "58%")
         XCTAssertEqual(ready.barFraction, 0.58)
-        // 58% is .ok — the whole item wears the severity color (DESIGN.md §Menu Bar Item).
+        // 58% is .ok — the menu bar stays neutral (quiet at rest); it only
+        // climbs orange → red as severity rises (DESIGN.md §Menu Bar Item).
         XCTAssertEqual(ready.color, RetroTheme.menuBarColor(for: .ok, darkAppearance: true))
+        XCTAssertEqual(ready.color, .white) // ok on a dark menu bar = neutral white
 
         let critical = StatusItemController.menuBarSpec(
             headline: QuotaLimit(kind: .weeklyAll, percentUsed: 90,
@@ -53,7 +55,8 @@ final class StatusItemLogicTests: XCTestCase {
             darkAppearance: true)
         XCTAssertEqual(expired.percentText, "!")
         XCTAssertNil(expired.barFraction)
-        // "!" wears Warning Gold — "needs you" should read faster than neutral.
+        // "!" borrows the warn ramp color (orange) — "needs you" reads as
+        // attention, distinct from the neutral at-rest state.
         XCTAssertEqual(expired.color, RetroTheme.menuBarColor(for: .warn, darkAppearance: true))
 
         let loading = StatusItemController.menuBarSpec(
@@ -111,14 +114,22 @@ final class StatusItemLogicTests: XCTestCase {
         XCTAssertEqual(expired.color, RetroTheme.menuBarColor(for: .warn, darkAppearance: false))
     }
 
-    func testMenuBarColorDarkVariantsMatchPalette() {
-        // Dark menu bar wears the palette trio unchanged.
-        XCTAssertEqual(RetroTheme.menuBarColor(for: .ok, darkAppearance: true),
-                       NSColor(hex: 0x00D9FF))
+    func testMenuBarSeverityRamp() {
+        // The menu bar ramp is deliberately quieter than the popover's
+        // Severity Trio: neutral at rest → orange → red. ok = neutral
+        // (white on dark, black on light), not the popover's Coin Cyan.
+        XCTAssertEqual(RetroTheme.menuBarColor(for: .ok, darkAppearance: true), .white)
+        XCTAssertEqual(RetroTheme.menuBarColor(for: .ok, darkAppearance: false), .black)
+
         XCTAssertEqual(RetroTheme.menuBarColor(for: .warn, darkAppearance: true),
-                       NSColor(hex: 0xFFC300))
+                       NSColor(hex: 0xFF7A1A)) // orange, not the popover's gold
+        XCTAssertEqual(RetroTheme.menuBarColor(for: .warn, darkAppearance: false),
+                       NSColor(hex: 0xC2410C)) // darkened orange for ≥4.5:1 on a light bar
+
         XCTAssertEqual(RetroTheme.menuBarColor(for: .critical, darkAppearance: true),
                        NSColor(hex: 0xFF5C5C))
+        XCTAssertEqual(RetroTheme.menuBarColor(for: .critical, darkAppearance: false),
+                       NSColor(hex: 0xDC2626))
     }
 
     func testOpenTabRule() {

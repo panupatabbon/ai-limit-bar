@@ -82,7 +82,7 @@ The register is product. The popover is 298pt wide (derived from the HP bar's pi
 **Key Characteristics:**
 - Dark-only, dual-surface world: Void Purple base with Dungeon Violet panels
 - Pixel type (Press Start 2P) for labels, SF Mono for prose — never the reverse
-- Severity speaks in exactly three colors: Coin Cyan → Warning Gold → Damage Red
+- Severity speaks in three states: ok → warn → critical — Coin Cyan → Warning Gold → Damage Red in the popover, neutral → orange → red on the quieter menu bar
 - 100% flat: depth is a surface-color change or a 1px stroke, never a shadow
 - Sharp corners everywhere; the grid is the ornament
 - Motion is a heartbeat, not a show: 0.3s sprite ticks, paused in Low Power Mode
@@ -107,7 +107,7 @@ A committed dark palette where the surfaces are the night and four saturated voi
 ### Named Rules
 **The Magenta-Is-Brand Rule.** Neon Magenta never encodes severity or data. It is prohibited on bars, percentages, and warnings; it belongs to headers, state titles, and brand marks only. Severity speaks exclusively through the Cyan → Gold → Red trio.
 
-**The Severity Trio Rule.** `Severity(percent:)` is the single source of truth: below 60% is Coin Cyan, 60–84% is Warning Gold, 85%+ is Damage Red. Any UI that shows quota state derives its color from this function — never hand-picked.
+**The Severity Trio Rule.** `Severity(percent:)` is the single source of truth for *state*: below 60% is ok, 60–84% is warn, 85%+ is critical. Any UI that shows quota state derives its state from this function — never hand-picked. The popover renders that state as Coin Cyan → Warning Gold → Damage Red. The **menu bar renders the same state through a quieter ramp** — neutral → orange → red (see §Menu Bar Item) — because a menu bar item should stay calm at rest and only draw the eye when attention is due.
 
 **The White-Opacity Ramp Rule.** There are no gray hex values. Secondary text is Pixel White at reduced opacity (0.8 / 0.7 / 0.6 / 0.5), so every "gray" stays tinted by the purple ground beneath it.
 
@@ -176,9 +176,10 @@ All components share the "refined retro" temperament: pixel-perfect geometry and
 
 ### Menu Bar Item
 - **Composition:** One pre-rendered NSImage, 18pt tall, built from one avatar block per enabled *live* provider (16pt sprite + 3pt gap + right block: 7pt pixel percent text above a 14×3pt mini bar at 25% track opacity), joined by an 8pt gap between provider blocks, in fixed catalog order (claude → codex → gemini → cursor). Coming-soon providers never render here
-- **Everything monochrome** in each block's own severity color, so every block reads as its own instrument light
-- **Text states:** "--" means no data yet for that provider (loading, neutral color); "!" means that provider needs the user (sign in / renew token) and wears Warning Gold — the two must never share a glyph or a color
-- **System-appearance aware:** the menu bar sits on the *system's* surface, not the app's dark-only one. Dark menu bar wears the palette trio unchanged; light menu bar wears darker same-hue variants (`#0E7490` / `#B45309` / `#DC2626`, all ≥4.5:1 on the light bar); the no-data neutral flips white ↔ black. The popover itself never changes — dark-only stays doctrine
+- **Everything monochrome** in each block's own ramp color, so every block reads as its own instrument light
+- **The quiet ramp:** the menu bar does NOT use the popover's Coin Cyan → Gold → Red trio. At rest (ok) it is **neutral** — white on a dark menu bar, black on a light one — then climbs **orange** (warn) → **red** (critical). A healthy quota is calm and unobtrusive; the item only lights up when the user should look. (Tradeoff: at ok the block shares its neutral color with the loading state — they're told apart by content, a real percentage + bar vs a "--".)
+- **Text states:** "--" means no data yet for that provider (loading, neutral color); "!" means that provider needs the user (sign in / renew token) and borrows the warn **orange** — the two must never share a glyph
+- **System-appearance aware:** the menu bar sits on the *system's* surface, not the app's dark-only one. warn/critical carry darkened light-appearance variants (`#C2410C` / `#DC2626`, ≥4.5:1 on a light bar) and the neutral ok flips white ↔ black. The popover itself never changes — dark-only, full trio, stays doctrine
 
 ### Settings Form
 - **Structure:** Native SwiftUI toggles and pickers tinted Coin Cyan on Void Purple, grouped under Label-size Neon Magenta section headers (same 1px-divider kicker as the popover), 20pt padding, 340pt wide; control labels in SF Mono per the typography contract

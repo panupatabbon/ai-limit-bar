@@ -41,13 +41,14 @@ Or build from source: `./Scripts/bundle.sh` (needs Xcode 15+ command line tools)
 ## Settings
 
 Launch at login · show/hide menu bar % · pick which
-limit the % tracks · choose visible limits · compact rows.
+limit the % tracks · choose visible limits · compact rows · PROVIDERS.
 
 ### Provider Tabs
 
-Claude (live usage) and Gemini (coming soon) tabs let you switch between
-providers. The popover always opens on Claude while Gemini is a coming-soon
-screen, so the quota glance never lands on a placeholder.
+Pick which providers to track in Settings → PROVIDERS (Claude live today;
+Codex, Gemini and Cursor appear as coming-soon tabs until their adapters
+land). The menu bar shows one pixel avatar per live provider; the popover
+opens on whichever provider most needs attention.
 
 ### ACTIVITY 24H
 

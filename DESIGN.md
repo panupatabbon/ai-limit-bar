@@ -142,10 +142,10 @@ A committed dark palette where the surfaces are the night and four saturated voi
 All components share the "refined retro" temperament: pixel-perfect geometry and game vocabulary, executed with restraint — exact alignment, stepped opacities, no noise. Every plain-style button carries `pixelFocusRing()`: a 1px Pixel White 70% rectangle on keyboard focus — the flat-language replacement for the system glow.
 
 ### Provider Tabs
-- **Shape:** Sharp rectangles (0pt radius), 6pt vertical / 10pt horizontal padding
-- **Active:** Coin Cyan fill with Void Purple text — the strongest inversion in the app
-- **Inactive:** Dungeon Violet fill with Pixel White at 70%
-- **Type:** Title (Press Start 2P 8pt), uppercase
+- **Shape:** Sharp rectangles (0pt radius), 6pt vertical / 10pt horizontal padding, one 16×16 mascot sprite per tab
+- **Active:** Coin Cyan fill with the mascot rendered in Void Purple — the strongest inversion in the app
+- **Inactive:** Dungeon Violet fill with the mascot rendered in Pixel White at 70%
+- **Visibility:** Hidden entirely when exactly one provider is enabled; existing VoiceOver labels, selected traits, and focus rings carry over unchanged
 
 ### Pixel Progress Bar (signature)
 - **Structure:** Exactly 12 segments, each 20×10pt, 2pt gaps, wrapped in a 1px Pixel White 40% stroke with 2pt inset — 266pt total, the popover's full measure (the popover width derives from this grid: 266 + 32pt padding = 298pt)
@@ -172,15 +172,17 @@ All components share the "refined retro" temperament: pixel-perfect geometry and
 - **Color:** In the popover header and menu bar, the sprite wears the headline limit's severity color — the mascot *is* the status indicator
 - **Mood:** the mascot's body language follows severity — **calm** (ok/no data: rests on base, blinks one tick in ten), **wary** (warn: walks the 4-step loop at half speed), **agitated** (critical: paces base/alt every tick, no time to blink)
 - **Motion:** frame tick every 0.3s in the popover, 1s in the menu bar; all variants hold the resting frame under Low Power Mode and Reduce Motion
+- **Mascots:** Claude (wide body, two slit eyes, side arms, four legs), Gemini (twin stars, alt swaps heights), Codex (hex-blossom — six petals around a hollow hexagonal core; alt rotates the petals one step, blink contracts the core), Cursor (I-beam with heavy top/bottom serifs for mass; alt shifts 1px vertically, blink is an intentionally empty frame — a literal text-cursor blink, the sprite test's one documented exception to "every frame draws pixels")
 
 ### Menu Bar Item
-- **Composition:** One pre-rendered NSImage, 18pt tall: 16pt sprite + 3pt gap + right block (7pt pixel percent text above a 14×3pt mini bar at 25% track opacity)
-- **Everything monochrome** in the severity color, so the whole item reads as a single instrument light
-- **Text states:** "--" means no data yet (loading, neutral color); "!" means the app needs the user (sign in / renew token) and wears Warning Gold — the two must never share a glyph or a color
+- **Composition:** One pre-rendered NSImage, 18pt tall, built from one avatar block per enabled *live* provider (16pt sprite + 3pt gap + right block: 7pt pixel percent text above a 14×3pt mini bar at 25% track opacity), joined by an 8pt gap between provider blocks, in fixed catalog order (claude → codex → gemini → cursor). Coming-soon providers never render here
+- **Everything monochrome** in each block's own severity color, so every block reads as its own instrument light
+- **Text states:** "--" means no data yet for that provider (loading, neutral color); "!" means that provider needs the user (sign in / renew token) and wears Warning Gold — the two must never share a glyph or a color
 - **System-appearance aware:** the menu bar sits on the *system's* surface, not the app's dark-only one. Dark menu bar wears the palette trio unchanged; light menu bar wears darker same-hue variants (`#0E7490` / `#B45309` / `#DC2626`, all ≥4.5:1 on the light bar); the no-data neutral flips white ↔ black. The popover itself never changes — dark-only stays doctrine
 
 ### Settings Form
 - **Structure:** Native SwiftUI toggles and pickers tinted Coin Cyan on Void Purple, grouped under Label-size Neon Magenta section headers (same 1px-divider kicker as the popover), 20pt padding, 340pt wide; control labels in SF Mono per the typography contract
+- **PROVIDERS section:** Sits above GENERAL — four toggles in fixed order, coming-soon providers labeled "(coming soon)"; the last enabled *live* provider's toggle is disabled so the menu bar can never go empty (the min-1-live rule). Toggling takes effect immediately via `ProviderHub`
 - **Window pinned dark:** the settings window forces dark appearance with a transparent Void Purple title bar, so native control chrome never renders light-theme variants onto the dark surface
 - **Native controls are kept native** — no custom-drawn checkboxes; the retro skin stops where macOS affordances begin
 

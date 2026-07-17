@@ -3,7 +3,7 @@ import AppKit
 @testable import AILimitBarKit
 
 final class SpriteTests: XCTestCase {
-    private let providers = ["claude", "gemini"]
+    private let providers = ["claude", "codex", "gemini", "cursor"]
 
     func testProviderSpritesAre16x16With4Frames() {
         for id in providers {
@@ -26,6 +26,14 @@ final class SpriteTests: XCTestCase {
             let diff = zip(a, b).filter { $0 != $1 }.count
             XCTAssertGreaterThanOrEqual(diff, 8, "\(id) idle motion too subtle: \(diff) px")
         }
+    }
+
+    func testCursorBlinkFrameIsEmpty() {
+        // The I-beam's blink IS a text-cursor blink: the frame goes dark.
+        let cursor = SpriteLibrary.sprite(forProvider: "cursor")
+        XCTAssertFalse(cursor.frames[3].bitmap.flatMap { $0 }.contains(true))
+        // base frame still has real mass
+        XCTAssertGreaterThanOrEqual(cursor.frames[0].bitmap.flatMap { $0 }.filter { $0 }.count, 30)
     }
 
     func testMoodFromSeverity() {

@@ -53,4 +53,37 @@ final class AppSettingsTests: XCTestCase {
         s.showWeeklyModels = false
         XCTAssertFalse(s.isVisible(.weeklyModel("Fable")))
     }
+
+    func testEnabledProvidersDefaultAndPersistence() {
+        let s1 = AppSettings(defaults: defaults)
+        XCTAssertEqual(s1.enabledProviders, [.claude])
+        s1.enabledProviders = [.claude, .codex]
+        XCTAssertEqual(AppSettings(defaults: defaults).enabledProviders, [.claude, .codex])
+    }
+
+    func testSanitizedProviders() {
+        // Unknown values dropped; a set with no live provider gets .claude back.
+        XCTAssertEqual(AppSettings.sanitizedProviders(nil), [.claude])
+        XCTAssertEqual(AppSettings.sanitizedProviders([]), [.claude])
+        XCTAssertEqual(AppSettings.sanitizedProviders(["garbage", "claude"]), [.claude])
+        XCTAssertEqual(AppSettings.sanitizedProviders(["cursor"]), [.cursor, .claude])
+        XCTAssertEqual(AppSettings.sanitizedProviders(["claude", "gemini"]), [.claude, .gemini])
+    }
+
+    @MainActor
+    func testCanToggleEnforcesMinOneLive() {
+        // Enabling anything is always allowed.
+        XCTAssertTrue(SettingsView.canToggle(.codex, enabled: [.claude]))
+        // Disabling the only live provider is forbidden…
+        XCTAssertFalse(SettingsView.canToggle(.claude, enabled: [.claude]))
+        XCTAssertFalse(SettingsView.canToggle(.claude, enabled: [.claude, .cursor]))  // cursor isn't live
+        // …but fine while another live provider remains (none besides claude is live yet,
+        // so assert via the rule's shape: disabling a non-live provider is always allowed).
+        XCTAssertTrue(SettingsView.canToggle(.cursor, enabled: [.claude, .cursor]))
+        // Two live providers (Claude + Codex): either can be disabled…
+        XCTAssertTrue(SettingsView.canToggle(.claude, enabled: [.claude, .codex]))
+        XCTAssertTrue(SettingsView.canToggle(.codex, enabled: [.claude, .codex]))
+        // …but the last remaining live provider is locked.
+        XCTAssertFalse(SettingsView.canToggle(.codex, enabled: [.codex]))
+    }
 }

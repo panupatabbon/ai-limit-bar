@@ -10,9 +10,39 @@ public struct SettingsView: View {
 
     private var palette: RetroPalette { RetroTheme.jules }
 
+    /// Enabling is always allowed; disabling is allowed only if at least one
+    /// live provider remains enabled afterwards.
+    public static func canToggle(_ id: ProviderID, enabled: Set<ProviderID>) -> Bool {
+        guard enabled.contains(id) else { return true }
+        return !enabled.subtracting([id]).isDisjoint(with: ProviderCatalog.liveIDs)
+    }
+
+    private func providerBinding(_ id: ProviderID) -> Binding<Bool> {
+        Binding(get: { settings.enabledProviders.contains(id) },
+                set: { on in
+                    if on { settings.enabledProviders.insert(id) }
+                    else { settings.enabledProviders.remove(id) }
+                })
+    }
+
     public var body: some View {
         let palette = self.palette
         VStack(alignment: .leading, spacing: 16) {
+            section("PROVIDERS", palette) {
+                ForEach(ProviderID.allCases, id: \.self) { id in
+                    let descriptor = ProviderCatalog.descriptor(for: id)
+                    Toggle(isOn: providerBinding(id)) {
+                        HStack(spacing: 4) {
+                            Text(descriptor.displayName)
+                            if descriptor.availability == .comingSoon {
+                                Text("(coming soon)")
+                                    .foregroundStyle(palette.textPrimary.opacity(0.5))
+                            }
+                        }
+                    }
+                    .disabled(!Self.canToggle(id, enabled: settings.enabledProviders))
+                }
+            }
             section("GENERAL", palette) {
                 Toggle("Launch at login", isOn: $launchAtLogin)
                     .onChange(of: launchAtLogin) { _, enabled in

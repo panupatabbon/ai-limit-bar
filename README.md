@@ -41,13 +41,14 @@ Or build from source: `./Scripts/bundle.sh` (needs Xcode 15+ command line tools)
 ## Settings
 
 Launch at login · show/hide menu bar % · pick which
-limit the % tracks · choose visible limits · compact rows.
+limit the % tracks · choose visible limits · compact rows · PROVIDERS.
 
 ### Provider Tabs
 
-Claude (live usage) and Gemini (coming soon) tabs let you switch between
-providers. The popover always opens on Claude while Gemini is a coming-soon
-screen, so the quota glance never lands on a placeholder.
+Pick which providers to track in Settings → PROVIDERS (Claude and Codex live
+today; Gemini and Cursor appear as coming-soon tabs until their adapters
+land). The menu bar shows one pixel avatar per live provider; the popover
+opens on whichever provider most needs attention.
 
 ### ACTIVITY 24H
 
@@ -56,9 +57,9 @@ transcripts; nothing leaves your machine.
 
 ## Behavior
 
-- The menu bar item wears the headline limit's severity color (cyan → gold →
-  red) and adapts to light/dark menu bars; `!` means the app needs you
-  (sign in / renew token), `--` means data hasn't loaded yet.
+- Each live provider's avatar wears its own severity color (cyan → gold →
+  red) and adapts to light/dark menu bars; `!` means that provider needs you
+  (sign in / renew token), `--` means its data hasn't loaded yet.
 - All animation pauses while macOS Low Power Mode is on, and respects the
   system Reduce Motion setting.
 

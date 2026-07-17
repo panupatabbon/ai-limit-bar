@@ -43,29 +43,25 @@ public enum RetroTheme {
         }
     }
 
-    /// AppKit mirror of the severity trio for surfaces drawn with NSColor
-    /// (the menu bar image).
-    public static func nsColor(for severity: Severity) -> NSColor {
-        switch severity {
-        case .ok: return NSColor(hex: okHex)
-        case .warn: return NSColor(hex: warnHex)
-        case .critical: return NSColor(hex: criticalHex)
-        }
-    }
-
-    // The menu bar sits on the SYSTEM's surface, not the app's dark-only one,
-    // so the trio needs light-appearance variants: same hue family, darkened
-    // to ≥4.5:1 against the light menu bar.
-    private static let okLightHex: UInt32 = 0x0E7490
-    private static let warnLightHex: UInt32 = 0xB45309
-    private static let criticalLightHex: UInt32 = 0xDC2626
+    // The menu bar ramp is deliberately quieter than the popover's Severity
+    // Trio: at rest (ok) the item is NEUTRAL — white on a dark menu bar,
+    // black on a light one — so the menu bar stays calm until something needs
+    // attention, then climbs orange → red. (The popover keeps cyan → gold →
+    // red.) The menu bar sits on the SYSTEM's surface, not the app's dark-only
+    // one, so warn/critical carry darkened light-appearance variants at
+    // ≥4.5:1 against a light menu bar.
+    private static let warnMenuDarkHex: UInt32 = 0xFF7A1A
+    private static let warnMenuLightHex: UInt32 = 0xC2410C
+    private static let criticalMenuLightHex: UInt32 = 0xDC2626
 
     public static func menuBarColor(for severity: Severity, darkAppearance: Bool) -> NSColor {
-        if darkAppearance { return nsColor(for: severity) }
         switch severity {
-        case .ok: return NSColor(hex: okLightHex)
-        case .warn: return NSColor(hex: warnLightHex)
-        case .critical: return NSColor(hex: criticalLightHex)
+        case .ok:
+            return darkAppearance ? .white : .black
+        case .warn:
+            return NSColor(hex: darkAppearance ? warnMenuDarkHex : warnMenuLightHex)
+        case .critical:
+            return NSColor(hex: darkAppearance ? criticalHex : criticalMenuLightHex)
         }
     }
 }

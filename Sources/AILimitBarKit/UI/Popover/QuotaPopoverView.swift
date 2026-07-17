@@ -1,15 +1,15 @@
 import SwiftUI
 
 public struct QuotaPopoverView: View {
-    let store: QuotaStore
+    let hub: ProviderHub
     @Bindable var settings: AppSettings
     let activity: ActivityStore
     let onOpenSettings: () -> Void
     let onQuit: () -> Void
 
-    public init(store: QuotaStore, settings: AppSettings, activity: ActivityStore,
+    public init(hub: ProviderHub, settings: AppSettings, activity: ActivityStore,
                 onOpenSettings: @escaping () -> Void, onQuit: @escaping () -> Void) {
-        self.store = store
+        self.hub = hub
         self.settings = settings
         self.activity = activity
         self.onOpenSettings = onOpenSettings
@@ -28,18 +28,44 @@ public struct QuotaPopoverView: View {
             : "Your plan reported no limits yet. Try again after using Claude."
     }
 
+    /// Falls back to the first enabled provider when the previously selected
+    /// tab is no longer enabled (disabled in Settings, or never was).
+    public static func resolvedTab(selected: ProviderID, enabled: [ProviderID]) -> ProviderID {
+        enabled.contains(selected) ? selected : (enabled.first ?? .claude)
+    }
+
+    /// A single enabled provider needs no chrome to switch away from.
+    public static func showsTabBar(enabledCount: Int) -> Bool { enabledCount > 1 }
+
+    public static func loadingHint(cliName: String) -> String {
+        "Reading usage from your \(cliName) account…"
+    }
+
+    public static func credentialsHint(cliName: String) -> String {
+        "Install and sign in to \(cliName) first — this app reads its quota data."
+    }
+
+    public static func tokenExpiredHint(cliName: String) -> String {
+        "Use \(cliName) once to renew the token, then this app recovers automatically."
+    }
+
+    public static func comingSoonHint(displayName: String) -> String {
+        "\(displayName) support is coming soon."
+    }
+
     private var palette: RetroPalette { RetroTheme.jules }
 
     public var body: some View {
         let palette = self.palette
+        let enabled = hub.orderedEnabled
+        let tab = Self.resolvedTab(selected: settings.selectedTab, enabled: enabled)
         // Rhythm: 16pt between zones (tabs / header / sections / footer),
-        // 8pt binds a section header to its own content (see claudeTab).
+        // 8pt binds a section header to its own content (see providerContent).
         VStack(alignment: .leading, spacing: 16) {
-            tabBar(palette)
-            switch settings.selectedTab {
-            case .claude: claudeTab(palette)
-            case .gemini: geminiTab(palette)
+            if Self.showsTabBar(enabledCount: enabled.count) {
+                tabBar(enabled: enabled, active: tab, palette)
             }
+            providerContent(for: tab, palette)
             footer(palette)
         }
         .padding(16)
@@ -52,64 +78,88 @@ public struct QuotaPopoverView: View {
     // MARK: Tabs
 
     @ViewBuilder
-    private func tabBar(_ palette: RetroPalette) -> some View {
+    private func tabBar(enabled: [ProviderID], active: ProviderID, _ palette: RetroPalette) -> some View {
         HStack(spacing: 6) {
-            ForEach(ProviderTab.allCases, id: \.self) { tab in
+            ForEach(enabled, id: \.self) { id in
                 Button {
-                    settings.selectedTab = tab
+                    settings.selectedTab = id
                 } label: {
-                    Text(tab.rawValue.uppercased())
-                        .pixelType(size: 8)
-                        .foregroundStyle(settings.selectedTab == tab
-                                         ? palette.background : palette.textPrimary.opacity(0.7))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(settings.selectedTab == tab ? palette.accentCyan : palette.surface)
+                    SpriteIconView(sprite: SpriteLibrary.sprite(forProvider: id.rawValue),
+                                   color: active == id ? palette.background
+                                                       : palette.textPrimary.opacity(0.7))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 5)
+                        .background(active == id ? palette.accentCyan : palette.surface)
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("\(tab.rawValue.capitalized) tab")
-                .accessibilityAddTraits(settings.selectedTab == tab ? [.isSelected] : [])
+                .help(ProviderCatalog.descriptor(for: id).displayName)
+                .accessibilityLabel("\(ProviderCatalog.descriptor(for: id).displayName) tab")
+                .accessibilityAddTraits(active == id ? [.isSelected] : [])
                 .pixelFocusRing()
             }
             Spacer()
         }
     }
 
-    // MARK: Claude tab
+    // MARK: Per-provider content
 
     @ViewBuilder
-    private func claudeTab(_ palette: RetroPalette) -> some View {
-        header(palette)
-        VStack(alignment: .leading, spacing: 8) {
-            sectionHeader("QUOTA", palette)
-            quotaContent(palette)
-        }
-        VStack(alignment: .leading, spacing: 8) {
-            sectionHeader("ACTIVITY 24H", palette)
-            activitySection(palette)
+    private func providerContent(for id: ProviderID, _ palette: RetroPalette) -> some View {
+        let descriptor = ProviderCatalog.descriptor(for: id)
+        if let store = hub.store(for: id) {
+            header(store: store, providerID: id, palette)
+            VStack(alignment: .leading, spacing: 8) {
+                sectionHeader("QUOTA", palette)
+                quotaContent(store: store, cliName: descriptor.cliName, palette)
+            }
+            if id == .claude {
+                VStack(alignment: .leading, spacing: 8) {
+                    sectionHeader("ACTIVITY 24H", palette)
+                    activitySection(palette)
+                }
+            }
+        } else {
+            comingSoon(descriptor, palette)
         }
     }
 
     @ViewBuilder
-    private func header(_ palette: RetroPalette) -> some View {
+    private func comingSoon(_ descriptor: ProviderDescriptor, _ palette: RetroPalette) -> some View {
+        VStack(spacing: 12) {
+            AvatarSpriteView(sprite: SpriteLibrary.sprite(forProvider: descriptor.id.rawValue),
+                             color: palette.accentCyan, pixelScale: 3)
+            Text("INSERT CARTRIDGE")
+                .pixelType(size: 12)
+                .foregroundStyle(palette.accentPink)
+            Text(Self.comingSoonHint(displayName: descriptor.displayName))
+                .font(.system(.caption, design: .monospaced))
+                .foregroundStyle(palette.textPrimary.opacity(0.8))
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 32)
+    }
+
+    @ViewBuilder
+    private func header(store: QuotaStore, providerID: ProviderID, _ palette: RetroPalette) -> some View {
         HStack {
             Text(store.currentSnapshot?.planName ?? "AI QUOTA")
                 .pixelType(size: 9)
                 .foregroundStyle(palette.accentCyan)
             Spacer()
-            AvatarSpriteView(sprite: SpriteLibrary.sprite(forProvider: "claude"),
-                             color: headlineColor(palette), pixelScale: 2,
-                             mood: SpriteMood(severity: headlineSeverity))
+            AvatarSpriteView(sprite: SpriteLibrary.sprite(forProvider: providerID.rawValue),
+                             color: headlineColor(store: store, palette),
+                             pixelScale: 2,
+                             mood: SpriteMood(severity: headlineSeverity(store: store)))
         }
     }
 
-    private var headlineSeverity: Severity? {
+    private func headlineSeverity(store: QuotaStore) -> Severity? {
         store.headlineLimit(pin: settings.headlinePin)
             .map { Severity(percent: $0.percentUsed) }
     }
 
-    private func headlineColor(_ palette: RetroPalette) -> Color {
-        guard let severity = headlineSeverity else {
+    private func headlineColor(store: QuotaStore, _ palette: RetroPalette) -> Color {
+        guard let severity = headlineSeverity(store: store) else {
             return palette.textPrimary.opacity(0.5)
         }
         return RetroTheme.color(for: severity, in: palette)
@@ -128,29 +178,24 @@ public struct QuotaPopoverView: View {
     }
 
     @ViewBuilder
-    private func quotaContent(_ palette: RetroPalette) -> some View {
+    private func quotaContent(store: QuotaStore, cliName: String, _ palette: RetroPalette) -> some View {
         switch store.state {
         case .loading:
-            stateScreen("LOADING", hint: "Reading usage from your Claude Code account…",
-                        palette: palette)
+            stateScreen("LOADING", hint: Self.loadingHint(cliName: cliName), palette: palette)
         case .credentialsMissing:
-            stateScreen("INSERT COIN",
-                        hint: "Install and sign in to Claude Code first — this app reads its quota data.",
-                        palette: palette)
+            stateScreen("INSERT COIN", hint: Self.credentialsHint(cliName: cliName), palette: palette)
         case .tokenExpired:
-            stateScreen("TOKEN EXPIRED",
-                        hint: "Use Claude Code once to renew the token, then this app recovers automatically.",
-                        palette: palette)
+            stateScreen("TOKEN EXPIRED", hint: Self.tokenExpiredHint(cliName: cliName), palette: palette)
         case .ready, .offline:
-            limitList(palette)
+            limitList(store: store, palette)
             if case .offline(let last) = store.state {
-                offlineBadge(last, palette: palette)
+                offlineBadge(store: store, last, palette: palette)
             }
         }
     }
 
     @ViewBuilder
-    private func limitList(_ palette: RetroPalette) -> some View {
+    private func limitList(store: QuotaStore, _ palette: RetroPalette) -> some View {
         let limits = Self.visibleLimits(store.currentSnapshot, settings: settings)
         if limits.isEmpty {
             let allHidden = !(store.currentSnapshot?.limits ?? []).isEmpty
@@ -184,7 +229,7 @@ public struct QuotaPopoverView: View {
     }
 
     @ViewBuilder
-    private func offlineBadge(_ last: QuotaSnapshot?, palette: RetroPalette) -> some View {
+    private func offlineBadge(store: QuotaStore, _ last: QuotaSnapshot?, palette: RetroPalette) -> some View {
         HStack(spacing: 6) {
             Text("OFFLINE")
                 .pixelType(size: 7)
@@ -278,24 +323,6 @@ public struct QuotaPopoverView: View {
         }
     }
 
-    // MARK: Gemini tab
-
-    @ViewBuilder
-    private func geminiTab(_ palette: RetroPalette) -> some View {
-        VStack(spacing: 12) {
-            AvatarSpriteView(sprite: SpriteLibrary.sprite(forProvider: "gemini"),
-                             color: palette.accentCyan, pixelScale: 3)
-            Text("INSERT CARTRIDGE")
-                .pixelType(size: 12)
-                .foregroundStyle(palette.accentPink)
-            Text("Gemini support is coming soon.")
-                .font(.system(.caption, design: .monospaced))
-                .foregroundStyle(palette.textPrimary.opacity(0.8))
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 32)
-    }
-
     // MARK: Footer
 
     @ViewBuilder
@@ -340,7 +367,8 @@ public struct QuotaPopoverView: View {
     }
 
     private func updatedLabel(now: Date) -> String {
-        guard let fetched = store.currentSnapshot?.fetchedAt else { return "UPDATED --" }
+        let tab = Self.resolvedTab(selected: settings.selectedTab, enabled: hub.orderedEnabled)
+        guard let fetched = hub.store(for: tab)?.currentSnapshot?.fetchedAt else { return "UPDATED --" }
         return "UPDATED " + RelativeTimeFormatter.string(since: fetched, now: now)
     }
 }

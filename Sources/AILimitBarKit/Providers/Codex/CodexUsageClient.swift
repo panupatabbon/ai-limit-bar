@@ -51,6 +51,8 @@ public struct CodexUsageResponse: Decodable {
               let windowSeconds = window.limitWindowSeconds,
               let resetAt = window.resetAt else { return nil }
         let kind: LimitKind = windowSeconds < 86_400 ? .session : .weeklyAll
+        // Codex's usage API has no binding-limit flag; isActive stays false (headlineLimit/hottest
+        // never read it, so only LimitRowView's "◀ ACTIVE" marker is suppressed).
         return QuotaLimit(kind: kind, percentUsed: percent,
                           resetsAt: Date(timeIntervalSince1970: resetAt), isActive: false)
     }

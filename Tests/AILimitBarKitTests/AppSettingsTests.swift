@@ -80,5 +80,10 @@ final class AppSettingsTests: XCTestCase {
         // …but fine while another live provider remains (none besides claude is live yet,
         // so assert via the rule's shape: disabling a non-live provider is always allowed).
         XCTAssertTrue(SettingsView.canToggle(.cursor, enabled: [.claude, .cursor]))
+        // Two live providers (Claude + Codex): either can be disabled…
+        XCTAssertTrue(SettingsView.canToggle(.claude, enabled: [.claude, .codex]))
+        XCTAssertTrue(SettingsView.canToggle(.codex, enabled: [.claude, .codex]))
+        // …but the last remaining live provider is locked.
+        XCTAssertFalse(SettingsView.canToggle(.codex, enabled: [.codex]))
     }
 }

@@ -60,4 +60,13 @@ final class ProviderHubTests: XCTestCase {
         for id in calm.orderedLive { await calm.store(for: id)!.refresh() }
         XCTAssertNil(calm.hottest(pin: .auto))                   // nobody ≥ warn
     }
+
+    func testHottestCriticalTieBreaksByOrderUnderNonAutoPin() async {
+        // Both critical (≥85) but codex has the higher raw percent — with a non-auto
+        // pin the rank tie must still resolve by fixed order, not by percent.
+        let hub = makeHub(percents: [.claude: 90, .codex: 99])
+        hub.sync(enabled: [.claude, .codex])
+        for id in hub.orderedLive { await hub.store(for: id)!.refresh() }
+        XCTAssertEqual(hub.hottest(pin: .session), .claude)
+    }
 }

@@ -1,5 +1,8 @@
 import Foundation
 
+// Order is canonical (display order everywhere). Keep all live providers before coming-soon ones:
+// openTab() derives the tooltip from orderedLive but the popover tab from orderedEnabled, and they
+// agree only while the first enabled provider is also live.
 public enum ProviderID: String, CaseIterable, Sendable {
     case claude, codex, gemini, cursor
 }

@@ -1,4 +1,3 @@
-import Foundation
 import Observation
 
 /// Owns one QuotaStore per enabled *live* provider. Disable = stop polling

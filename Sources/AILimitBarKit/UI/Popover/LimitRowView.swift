@@ -43,6 +43,7 @@ public struct LimitRowView: View {
             reset = ResetFormatter.spokenSessionCountdown(until: limit.resetsAt, from: now)
         case .weeklyAll, .weeklyModel:
             reset = ResetFormatter.spokenWeeklyReset(limit.resetsAt)
+                + ", " + ResetFormatter.spokenWeeklyCountdown(until: limit.resetsAt, from: now)
         }
         var parts = [kindLabel(limit.kind).capitalized,
                      "\(Int(limit.percentUsed)) percent used"]
@@ -63,6 +64,7 @@ public struct LimitRowView: View {
             return "RESET " + ResetFormatter.sessionCountdown(until: limit.resetsAt, from: now)
         case .weeklyAll, .weeklyModel:
             return "RESET " + ResetFormatter.weeklyReset(limit.resetsAt)
+                + " · " + ResetFormatter.weeklyCountdown(until: limit.resetsAt, from: now)
         }
     }
 

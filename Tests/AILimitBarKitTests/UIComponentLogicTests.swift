@@ -91,6 +91,9 @@ final class UIComponentLogicTests: XCTestCase {
         let spoken = LimitRowView.accessibilityDescription(for: weekly, now: now)
         XCTAssertTrue(spoken.hasPrefix("Weekly Total, 90 percent used, critical, resets "),
                       "got: \(spoken)")
+        // Spoken form mirrors the visible countdown so VoiceOver stays in sync.
+        XCTAssertTrue(spoken.hasSuffix(", in 2 days 17 hours"),
+                      "spoken weekly should append the countdown: \(spoken)")
         XCTAssertFalse(spoken.contains("RESET"), "spoken form must not reuse the pixel label")
     }
 
@@ -115,8 +118,12 @@ final class UIComponentLogicTests: XCTestCase {
                                  resetsAt: now.addingTimeInterval(2 * 3600 + 14 * 60), isActive: false)
         XCTAssertEqual(LimitRowView.resetLabel(for: session, now: now), "RESET 2H 14M")
 
+        // Weekly keeps the absolute date and appends a live countdown.
         let weekly = QuotaLimit(kind: .weeklyAll, percentUsed: 58,
-                                resetsAt: Date(timeIntervalSince1970: 1_784_235_600), isActive: true)
-        XCTAssertTrue(LimitRowView.resetLabel(for: weekly, now: now).hasPrefix("RESET "))
+                                resetsAt: now.addingTimeInterval(3 * 86400 + 5 * 3600), isActive: true)
+        let weeklyLabel = LimitRowView.resetLabel(for: weekly, now: now)
+        XCTAssertTrue(weeklyLabel.hasPrefix("RESET "), "got: \(weeklyLabel)")
+        XCTAssertTrue(weeklyLabel.hasSuffix(" · 3D 5H"),
+                      "weekly label keeps the date, then ' · <countdown>': \(weeklyLabel)")
     }
 }

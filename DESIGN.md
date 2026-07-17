@@ -156,6 +156,7 @@ All components share the "refined retro" temperament: pixel-perfect geometry and
 
 ### Limit Row
 - **Layout:** Label row (kind + percent + optional active marker) over the bar, 4pt gap; reset caption below — hidden in compact mode except for the binding limit, and promoted to 7pt full white from warn upward
+- **Reset caption:** session shows a live countdown ("RESET 2H 15M"); weekly keeps its absolute day/time and appends a day-spanning countdown ("RESET FRI 14:00 · 3D 5H") — the date answers "which day", the countdown answers "how long"
 - **Percent color:** severity-derived; kind label stays Pixel White
 - **Active marker:** Neon Magenta "◀ ACTIVE" with tooltip "Currently binding limit"
 - **Accessibility:** each row is one VoiceOver element speaking a full sentence ("Session, 58 percent used, resets in 2 hours 14 minutes, you'll hit this limit first")

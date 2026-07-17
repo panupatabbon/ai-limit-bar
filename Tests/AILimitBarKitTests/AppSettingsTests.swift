@@ -69,4 +69,16 @@ final class AppSettingsTests: XCTestCase {
         XCTAssertEqual(AppSettings.sanitizedProviders(["cursor"]), [.cursor, .claude])
         XCTAssertEqual(AppSettings.sanitizedProviders(["claude", "gemini"]), [.claude, .gemini])
     }
+
+    @MainActor
+    func testCanToggleEnforcesMinOneLive() {
+        // Enabling anything is always allowed.
+        XCTAssertTrue(SettingsView.canToggle(.codex, enabled: [.claude]))
+        // Disabling the only live provider is forbidden…
+        XCTAssertFalse(SettingsView.canToggle(.claude, enabled: [.claude]))
+        XCTAssertFalse(SettingsView.canToggle(.claude, enabled: [.claude, .cursor]))  // cursor isn't live
+        // …but fine while another live provider remains (none besides claude is live yet,
+        // so assert via the rule's shape: disabling a non-live provider is always allowed).
+        XCTAssertTrue(SettingsView.canToggle(.cursor, enabled: [.claude, .cursor]))
+    }
 }

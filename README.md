@@ -1,16 +1,19 @@
 # ai-limit-bar
 
-A retro 8-bit menu bar app for macOS that shows your Claude Pro/Max
-subscription quota — session (5-hour), weekly, and per-model limits with
-used %, HP-style pixel bars, and reset times.
+A retro 8-bit menu bar app for macOS that tracks your AI coding quota across
+providers — session (5-hour), weekly, and per-model limits with used %,
+HP-style pixel bars, and reset times. Live for **Claude** (Pro/Max) and
+**Codex**; Gemini and Cursor are coming soon.
 
 <img width="800" height="508" alt="CleanShot 2569-07-15 at 13 48 24" src="https://github.com/user-attachments/assets/88d29daa-ffbb-4071-8f92-ea71add77b6a" />
 
 ## Requirements
 
 - macOS 14+
-- [Claude Code](https://claude.com/claude-code) installed and signed in
-  (this app reads the quota through Claude Code's credentials)
+- At least one supported CLI installed and signed in — the app reads each
+  provider's quota through that CLI's own local credentials:
+  - [Claude Code](https://claude.com/claude-code) for Claude
+  - [Codex CLI](https://github.com/openai/codex) for Codex
 
 ## Install
 
@@ -21,22 +24,25 @@ Or build from source: `./Scripts/bundle.sh` (needs Xcode 15+ command line tools)
 
 ## Security
 
-- **Read-only.** The app reads Claude Code's OAuth access token from the
-  macOS Keychain (item "Claude Code-credentials") with a fallback to
-  `~/.claude/.credentials.json`. It never writes to either store and never
-  refreshes tokens.
-- On first launch macOS shows a Keychain access dialog — click **Always
-  Allow** so you aren't prompted again. Because release builds are
-  ad-hoc signed (not notarized), rebuilding from source or updating to a
-  new build changes the app's signature and will trigger the Keychain
-  prompt again.
-- The token stays in memory, is never logged, and is sent to exactly one
-  place: `https://api.anthropic.com/api/oauth/usage` over HTTPS.
+- **Read-only, always.** Each provider reads only its own CLI's local
+  credentials, never writes them, and never refreshes tokens. Tokens stay
+  in memory and are never logged.
+- **Claude:** reads the OAuth access token from the macOS Keychain (item
+  "Claude Code-credentials") with a fallback to `~/.claude/.credentials.json`,
+  and sends it only to `https://api.anthropic.com/api/oauth/usage`.
+- **Codex:** reads `tokens.access_token` from `~/.codex/auth.json` (the
+  `id_token`, `refresh_token`, and `account_id` fields are never touched),
+  and sends it only to `https://chatgpt.com/backend-api/wham/usage`.
+- On first launch macOS shows a Keychain access dialog (for Claude) — click
+  **Always Allow** so you aren't prompted again. Because release builds are
+  ad-hoc signed (not notarized), rebuilding from source or updating to a new
+  build changes the app's signature and will trigger the Keychain prompt
+  again.
 - No telemetry, no analytics, no auto-update pings.
 - The activity section scans `~/.claude/projects` locally and keeps only
   name+count aggregates in memory.
-- Note: the usage endpoint is the same one Claude Code's `/usage` command
-  uses; it is not officially documented and may change.
+- Note: both usage endpoints are the undocumented ones the CLIs' own usage
+  commands use; they are not officially supported and may change.
 
 ## Settings
 

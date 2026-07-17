@@ -142,7 +142,7 @@ A committed dark palette where the surfaces are the night and four saturated voi
 All components share the "refined retro" temperament: pixel-perfect geometry and game vocabulary, executed with restraint — exact alignment, stepped opacities, no noise. Every plain-style button carries `pixelFocusRing()`: a 1px Pixel White 70% rectangle on keyboard focus — the flat-language replacement for the system glow.
 
 ### Provider Tabs
-- **Shape:** Sharp rectangles (0pt radius), 6pt vertical / 10pt horizontal padding, one 16×16 mascot sprite per tab
+- **Shape:** Sharp rectangles (0pt radius), 8pt horizontal / 5pt vertical padding, one 16×16 mascot sprite per tab
 - **Active:** Coin Cyan fill with the mascot rendered in Void Purple — the strongest inversion in the app
 - **Inactive:** Dungeon Violet fill with the mascot rendered in Pixel White at 70%
 - **Visibility:** Hidden entirely when exactly one provider is enabled; existing VoiceOver labels, selected traits, and focus rings carry over unchanged

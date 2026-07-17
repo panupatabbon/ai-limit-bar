@@ -57,9 +57,9 @@ transcripts; nothing leaves your machine.
 
 ## Behavior
 
-- The menu bar item wears the headline limit's severity color (cyan → gold →
-  red) and adapts to light/dark menu bars; `!` means the app needs you
-  (sign in / renew token), `--` means data hasn't loaded yet.
+- Each live provider's avatar wears its own severity color (cyan → gold →
+  red) and adapts to light/dark menu bars; `!` means that provider needs you
+  (sign in / renew token), `--` means its data hasn't loaded yet.
 - All animation pauses while macOS Low Power Mode is on, and respects the
   system Reduce Motion setting.
 

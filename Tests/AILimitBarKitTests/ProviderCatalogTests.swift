@@ -23,7 +23,7 @@ final class ProviderCatalogTests: XCTestCase {
         }
     }
 
-    func testOnlyClaudeIsLiveInitially() {
-        XCTAssertEqual(ProviderCatalog.liveIDs, [.claude])
+    func testLiveProviders() {
+        XCTAssertEqual(ProviderCatalog.liveIDs, [.claude, .codex])
     }
 }

@@ -18,7 +18,7 @@ public struct ProviderDescriptor: Sendable {
 public enum ProviderCatalog {
     public static let all: [ProviderDescriptor] = [
         .init(id: .claude, displayName: "Claude", cliName: "Claude Code", availability: .live),
-        .init(id: .codex, displayName: "Codex", cliName: "Codex CLI", availability: .comingSoon),
+        .init(id: .codex, displayName: "Codex", cliName: "Codex CLI", availability: .live),
         .init(id: .gemini, displayName: "Gemini", cliName: "Gemini CLI", availability: .comingSoon),
         .init(id: .cursor, displayName: "Cursor", cliName: "Cursor", availability: .comingSoon),
     ]
@@ -36,7 +36,8 @@ public enum ProviderCatalog {
     public static func makeProvider(for id: ProviderID) -> QuotaProvider? {
         switch id {
         case .claude: return ClaudeProvider()
-        case .codex, .gemini, .cursor: return nil
+        case .codex: return CodexProvider()
+        case .gemini, .cursor: return nil
         }
     }
 }

@@ -42,6 +42,10 @@ final class PopoverLogicTests: XCTestCase {
     }
 
     func testPerProviderStateCopy() {
+        XCTAssertEqual(QuotaPopoverView.loadingHint(cliName: "Claude Code"),
+                       "Reading usage from your Claude Code account…")
+        XCTAssertEqual(QuotaPopoverView.loadingHint(cliName: "Codex CLI"),
+                       "Reading usage from your Codex CLI account…")
         XCTAssertEqual(QuotaPopoverView.credentialsHint(cliName: "Codex CLI"),
                        "Install and sign in to Codex CLI first — this app reads its quota data.")
         XCTAssertEqual(QuotaPopoverView.tokenExpiredHint(cliName: "Gemini CLI"),

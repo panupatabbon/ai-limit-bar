@@ -37,6 +37,10 @@ public struct QuotaPopoverView: View {
     /// A single enabled provider needs no chrome to switch away from.
     public static func showsTabBar(enabledCount: Int) -> Bool { enabledCount > 1 }
 
+    public static func loadingHint(cliName: String) -> String {
+        "Reading usage from your \(cliName) account…"
+    }
+
     public static func credentialsHint(cliName: String) -> String {
         "Install and sign in to \(cliName) first — this app reads its quota data."
     }
@@ -177,8 +181,7 @@ public struct QuotaPopoverView: View {
     private func quotaContent(store: QuotaStore, cliName: String, _ palette: RetroPalette) -> some View {
         switch store.state {
         case .loading:
-            stateScreen("LOADING", hint: "Reading usage from your Claude Code account…",
-                        palette: palette)
+            stateScreen("LOADING", hint: Self.loadingHint(cliName: cliName), palette: palette)
         case .credentialsMissing:
             stateScreen("INSERT COIN", hint: Self.credentialsHint(cliName: cliName), palette: palette)
         case .tokenExpired:

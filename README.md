@@ -45,8 +45,8 @@ limit the % tracks · choose visible limits · compact rows · PROVIDERS.
 
 ### Provider Tabs
 
-Pick which providers to track in Settings → PROVIDERS (Claude live today;
-Codex, Gemini and Cursor appear as coming-soon tabs until their adapters
+Pick which providers to track in Settings → PROVIDERS (Claude and Codex live
+today; Gemini and Cursor appear as coming-soon tabs until their adapters
 land). The menu bar shows one pixel avatar per live provider; the popover
 opens on whichever provider most needs attention.
 

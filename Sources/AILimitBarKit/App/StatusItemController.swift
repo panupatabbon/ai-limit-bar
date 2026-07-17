@@ -28,10 +28,8 @@ public final class StatusItemController {
 
         let popover = NSPopover()
         popover.behavior = .transient
-        // Task 7 replaces this with hub:
         popover.contentViewController = NSHostingController(
-            rootView: QuotaPopoverView(store: hub.store(for: .claude) ?? QuotaStore(provider: ClaudeProvider()),
-                                       settings: settings,
+            rootView: QuotaPopoverView(hub: hub, settings: settings,
                                        activity: activityStore) { [weak self] in
                 self?.popover?.performClose(nil)
                 self?.settingsWindow.show()
